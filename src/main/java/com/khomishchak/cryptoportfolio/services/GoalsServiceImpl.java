@@ -43,7 +43,7 @@ public class GoalsServiceImpl implements GoalsService {
     @Override
     public CryptoGoalsTable createCryptoGoalsTable(Long userId, CryptoGoalsTable tableRequest) {
 
-        User user = getUserOrThrowException(userId);
+        User user = userService.getUserById(userId);
         user.setCryptoGoalsTable(tableRequest);
         tableRequest.setUser(user);
 
@@ -52,7 +52,7 @@ public class GoalsServiceImpl implements GoalsService {
 
     @Override
     public CryptoGoalsTable getCryptoGoalsTable(Long accountId) {
-        CryptoGoalsTable table  = getUserOrThrowException(accountId).getCryptoGoalsTable();
+        CryptoGoalsTable table  = userService.getUserById(accountId).getCryptoGoalsTable();
 
         table.getTableRecords().forEach(this::setPostQuantityValues);
 
@@ -111,7 +111,7 @@ public class GoalsServiceImpl implements GoalsService {
     @Override
     @Transactional
     public List<SelfGoal> createSelfGoals(Long accountId, List<SelfGoal> goals) {
-        User user = getUserOrThrowException(accountId);
+        User user = userService.getUserById(accountId);
         user.setSelfGoals(goals);
 
         goals.forEach(g -> {
@@ -170,12 +170,6 @@ public class GoalsServiceImpl implements GoalsService {
         createdTable.getTableRecords().forEach(this::setPostQuantityValues);
 
         return createdTable;
-    }
-
-
-    private User getUserOrThrowException(long userId) {
-        return userService.getUserById(userId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with id: %s was not found", userId)));
     }
 
     private CryptoGoalsTable getCryptoGoalsTableOrThrowException(long tableId) {

@@ -62,4 +62,7 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SelfGoal> selfGoals;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Feedback> feedbacks;
 }
