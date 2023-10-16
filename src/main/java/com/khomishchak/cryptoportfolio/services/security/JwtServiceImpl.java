@@ -13,13 +13,16 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.lang.JoseException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Map;
+import java.util.Optional;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -84,12 +87,23 @@ public class JwtServiceImpl implements JwtService {
 
         try {
             username = extractAllClaims(token).getSubject();
-        } catch (MalformedClaimException exception) {
+        } catch (MalformedClaimException | RuntimeException exception) {
             username = null;
             // logging
         }
 
         return username;
+    }
+
+    @Override
+    public Optional<String> getToken(HttpServletRequest request) {
+        String jwtTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (jwtTokenHeader == null || !jwtTokenHeader.startsWith("Bearer ")) {
+            return Optional.empty();
+        }
+
+        return Optional.of(jwtTokenHeader.substring(7));
     }
 
     private JwtClaims extractAllClaims(String token) {
