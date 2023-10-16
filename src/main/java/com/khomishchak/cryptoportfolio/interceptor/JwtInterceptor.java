@@ -20,9 +20,9 @@ public class JwtInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String token = jwtService.getToken(request).orElse("");
-        String username = jwtService.extractUsername(token);
+        Long userId = jwtService.extractUserId(token);
 
-        request.setAttribute("username", username);
+        request.setAttribute("userId", userId);
 
         return true;
     }

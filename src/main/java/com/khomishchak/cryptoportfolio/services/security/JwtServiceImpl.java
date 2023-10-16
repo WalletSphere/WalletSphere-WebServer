@@ -1,5 +1,7 @@
 package com.khomishchak.cryptoportfolio.services.security;
 
+import com.khomishchak.cryptoportfolio.security.UserDetailsImpl;
+
 import org.jose4j.jwk.EcJwkGenerator;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
 import org.jose4j.jws.AlgorithmIdentifiers;
@@ -47,8 +49,15 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(Map<String, String> extraClaims, UserDetails userDetails) {
+        if(!(userDetails instanceof UserDetailsImpl)) {
+            throw new IllegalArgumentException("Expected type was UserDetailsImpl");
+        }
+
+        UserDetailsImpl userDetailsimpl = (UserDetailsImpl) userDetails;
+
         JwtClaims jwtClaims = new JwtClaims();
         jwtClaims.setSubject(userDetails.getUsername());
+        jwtClaims.setClaim("userId", userDetailsimpl.getUserId());
         jwtClaims.setIssuedAtToNow();
         jwtClaims.setExpirationTimeMinutesInTheFuture(EXPIRATION_TIME_IN_MINUTES);
 
@@ -93,6 +102,11 @@ public class JwtServiceImpl implements JwtService {
         }
 
         return username;
+    }
+
+    @Override
+    public Long extractUserId(String token) {
+        return (Long) extractAllClaims(token).getClaimValue("userId");
     }
 
     @Override
