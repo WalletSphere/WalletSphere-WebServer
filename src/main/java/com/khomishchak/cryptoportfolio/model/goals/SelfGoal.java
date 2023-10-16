@@ -2,6 +2,7 @@ package com.khomishchak.cryptoportfolio.model.goals;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.khomishchak.cryptoportfolio.model.User;
+import com.khomishchak.cryptoportfolio.model.enums.GoalType;
 
 import java.time.LocalDateTime;
 
@@ -18,9 +19,11 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Setter
@@ -29,6 +32,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Table(name = "self_goals")
+@ToString(exclude = "user")
+@EqualsAndHashCode(exclude = "user")
 public class SelfGoal {
 
     @Id

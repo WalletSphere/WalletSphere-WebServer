@@ -17,9 +17,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Setter
@@ -28,6 +30,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Table(name = "feedbacks")
+@ToString(exclude = "user")
+@EqualsAndHashCode(exclude = "user")
 public class Feedback {
 
     @Id

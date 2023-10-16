@@ -9,13 +9,12 @@ import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTableRecord;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsRecordUpdateReq;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTable;
-import com.khomishchak.cryptoportfolio.model.goals.GoalType;
+import com.khomishchak.cryptoportfolio.model.enums.GoalType;
 import com.khomishchak.cryptoportfolio.model.goals.SelfGoal;
 import com.khomishchak.cryptoportfolio.repositories.CryptoGoalsTableRepository;
 import com.khomishchak.cryptoportfolio.repositories.SelfGoalRepository;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerService;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
