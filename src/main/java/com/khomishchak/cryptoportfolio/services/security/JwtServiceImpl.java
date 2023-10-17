@@ -30,6 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public class JwtServiceImpl implements JwtService {
 
     private static final Long EXPIRATION_TIME_IN_MINUTES = 30L;
+    private static final String TOKEN_PREFIX = "Bearer ";
     private static final String ALG_HEADER = AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256;
 
     private Key privateKey;
@@ -113,11 +114,11 @@ public class JwtServiceImpl implements JwtService {
     public Optional<String> getToken(HttpServletRequest request) {
         String jwtTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (jwtTokenHeader == null || !jwtTokenHeader.startsWith("Bearer ")) {
+        if (jwtTokenHeader == null || !jwtTokenHeader.startsWith(TOKEN_PREFIX)) {
             return Optional.empty();
         }
 
-        return Optional.of(jwtTokenHeader.substring(7));
+        return Optional.of(jwtTokenHeader.substring(TOKEN_PREFIX.length()));
     }
 
     private JwtClaims extractAllClaims(String token) {
