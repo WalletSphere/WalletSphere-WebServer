@@ -55,10 +55,7 @@ public class ExchangerServiceImpl implements ExchangerService {
 
         userRepository.getReferenceById(userId).getApiKeysSettings().stream()
                 .map(ApiKeySetting::getCode)
-                .forEach(code -> {
-                            balances.add(getExchangerConnectorService(code).getMainBalance(userId));
-                        }
-                );
+                .forEach(code -> balances.add(getExchangerConnectorService(code).getMainBalance(userId)));
 
         return balances;
     }

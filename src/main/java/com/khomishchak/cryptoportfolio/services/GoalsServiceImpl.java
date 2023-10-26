@@ -1,6 +1,7 @@
 package com.khomishchak.cryptoportfolio.services;
 
 import com.khomishchak.cryptoportfolio.exceptions.GoalsTableNotFoundException;
+import com.khomishchak.cryptoportfolio.exceptions.GoalsTableRecordNotFoundException;
 import com.khomishchak.cryptoportfolio.model.Transaction;
 import com.khomishchak.cryptoportfolio.model.TransactionType;
 import com.khomishchak.cryptoportfolio.model.User;
@@ -86,7 +87,7 @@ public class GoalsServiceImpl implements GoalsService {
            CryptoGoalsTableRecord tableRecord = cryptoGoalsTable.getTableRecords().stream()
                    .filter(r -> r.getName().equals(record.ticker()))
                    .findFirst()
-                   .orElseThrow(() -> new RuntimeException(String.format("Record with ticker:%s was not found for table with id:%d", record.ticker(), tableId)));
+                   .orElseThrow(() -> new GoalsTableRecordNotFoundException(String.format("Record with ticker:%s was not found for table with id:%d", record.ticker(), tableId)));
 
            tableRecord.setAverageCost(tableRecord.getAverageCost()
                    .multiply(tableRecord.getQuantity())
