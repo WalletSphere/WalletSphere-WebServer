@@ -21,8 +21,7 @@ public class ApiKeySettingRepositoryAdapter {
     }
 
     public List<DecryptedApiKeySettingDTO> findAllByUserId(long userId) {
-        List<ApiKeySetting> apiKeySettings = apiKeySettingRepository.findAllByUserId(userId);
-        return apiKeySettings.stream()
+         return apiKeySettingRepository.findAllByUserId(userId).stream()
                 .map(settings -> {
                     ApiKeysPair originalKeysPair = settings.getApiKeys();
                     String decryptedPrivateKey = aesEncryptionService.decrypt(originalKeysPair.getPrivateKey());
