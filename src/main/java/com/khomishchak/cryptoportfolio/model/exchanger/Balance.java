@@ -37,6 +37,8 @@ public class Balance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String balanceName;
+
     @Enumerated(value = EnumType.STRING)
     private ExchangerCode code;
 
