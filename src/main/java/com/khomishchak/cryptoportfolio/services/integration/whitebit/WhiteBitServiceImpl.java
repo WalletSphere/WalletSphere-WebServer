@@ -87,6 +87,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
         String apiKey = decryptedKeysPair.getPublicKey();
         validateApiKey(apiKey);
 
+        // TODO: create POJO
         String requestJson = String.format("{\"request\":\"%1$s\",\"nonce\":\"%2$s\",\"nonceWindow\":false}",
                 GET_MAIN_BALANCE_URL,
                 System.currentTimeMillis());
@@ -111,6 +112,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
         String apiKey = keysPair.getPublicKey();
         validateApiKey(apiKey);
 
+        // TODO: create POJO
         String requestJson = String.format(
                 "{\"offset\":%1$d,\"limit\":%2$d,\"request\":\"%3$s\",\"nonce\":\"%4$s\"}",
                 0, 100, GET_MAIN_BALANCE_DEPOSIT_WITHDRAWAL_HISTORY_URL, System.currentTimeMillis()
