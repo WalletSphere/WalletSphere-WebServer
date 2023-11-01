@@ -1,4 +1,4 @@
-package com.khomishchak.cryptoportfolio.services;
+package com.khomishchak.cryptoportfolio.services.exchangers.balances;
 
 import com.khomishchak.cryptoportfolio.model.User;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;

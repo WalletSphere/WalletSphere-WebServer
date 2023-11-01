@@ -1,4 +1,4 @@
-package com.khomishchak.cryptoportfolio.services;
+package com.khomishchak.cryptoportfolio.services.exchangers.balances;
 
 import com.khomishchak.cryptoportfolio.exceptions.BalanceNotFoundException;
 import com.khomishchak.cryptoportfolio.model.User;
@@ -10,19 +10,17 @@ import com.khomishchak.cryptoportfolio.services.markets.MarketService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 public class BalanceServiceImpl implements BalanceService {
 
     private final BalanceRepository balanceRepository;
-    private final MarketService marketService;
+    private final BalancePricingService balancePricingService;
 
-    public BalanceServiceImpl(BalanceRepository balanceRepository, MarketService marketService) {
+
+    public BalanceServiceImpl(BalanceRepository balanceRepository, BalancePricingService balancePricingService) {
         this.balanceRepository = balanceRepository;
-        this.marketService = marketService;
+        this.balancePricingService = balancePricingService;
     }
 
     @Override
@@ -44,31 +42,7 @@ public class BalanceServiceImpl implements BalanceService {
         balance.setCurrencies(availableCurrencies);
 
         Balance persistedBalance = balanceRepository.save(balance);
-
-        return persistedBalance.toBuilder()
-                .totalValue(getTotalPrices(availableCurrencies))
-                .build();
-    }
-
-    // TODO: move to BalancePricesService later on
-    private Double getTotalPrices(List<Currency> currencies) {
-
-
-        Map<String, Double> marketValues = marketService.getCurrentMarketValues();
-        Map<String, Currency> currencyMap = currencies.stream()
-                .collect(Collectors.toMap(Currency::getCurrencyCode, Function.identity()));
-
-
-        double totalValue = 0;
-        for (Map.Entry<String, Double> entry : marketValues.entrySet()) {
-            Currency currency = currencyMap.get(entry.getKey());
-            if (currency != null) {
-                double currencyTotalValue = entry.getValue() * currency.getAmount();
-                currency.setTotalValue(currencyTotalValue);
-                totalValue += currencyTotalValue;
-            }
-        }
-
-        return totalValue;
+        balancePricingService.calculateBalanceValueUpToDate(persistedBalance, availableCurrencies);
+        return persistedBalance;
     }
 }
