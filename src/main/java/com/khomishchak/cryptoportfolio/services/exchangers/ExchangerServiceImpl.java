@@ -14,6 +14,7 @@ import com.khomishchak.cryptoportfolio.model.response.RegisterApiKeysResp;
 import com.khomishchak.cryptoportfolio.repositories.ApiKeySettingRepository;
 import com.khomishchak.cryptoportfolio.repositories.UserRepository;
 
+import com.khomishchak.cryptoportfolio.services.BalanceService;
 import com.khomishchak.cryptoportfolio.services.security.encryption.AesEncryptionService;
 import org.springframework.stereotype.Service;
 
@@ -48,11 +49,12 @@ public class ExchangerServiceImpl implements ExchangerService {
     @Transactional
     public FirstlyGeneratedBalanceResp addGeneralExchangerInfo(RegisterExchangerInfoReq exchangerInfoReq, long userId) {
         User user = userRepository.getReferenceById(userId);
-
         RegisterApiKeysReq apiKeys = exchangerInfoReq.apiKeysReq();
-        generateApiKeysSettingsForUser(user, apiKeys.secretKey(), apiKeys.publicKey(), apiKeys.code());
+        ExchangerCode code = apiKeys.code();
 
-        Balance emptyBalance = balanceService.registerBalanceEntryInfo(exchangerInfoReq.balanceName(), user);
+        generateApiKeysSettingsForUser(user, apiKeys.secretKey(), apiKeys.publicKey(), code);
+
+        Balance emptyBalance = balanceService.registerBalanceEntryInfo(code, exchangerInfoReq.balanceName(), user);
 
         return new FirstlyGeneratedBalanceResp(emptyBalance.getId(), userId, RegistrationStatus.SUCCESSFUL);
     }
