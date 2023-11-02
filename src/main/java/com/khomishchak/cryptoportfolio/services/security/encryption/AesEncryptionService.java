@@ -26,7 +26,7 @@ public class AesEncryptionService {
             byte[] encryptedBytes = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(encryptedBytes);
         } catch (Exception e) {
-            return "";
+            throw new UnsupportedOperationException(String.format("Couldn't encrypt data: %s \nErrorMessage: %s", data, e.getMessage()));
         }
     }
 
@@ -36,7 +36,7 @@ public class AesEncryptionService {
             byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
             return new String(decryptedBytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            return "";
+            throw new UnsupportedOperationException(String.format("Couldn't decrypt data: %s \nErrorMessage: %s", encryptedData, e.getMessage()));
         }
     }
 

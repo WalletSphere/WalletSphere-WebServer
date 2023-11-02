@@ -16,6 +16,7 @@ import com.khomishchak.cryptoportfolio.repositories.UserRepository;
 
 import com.khomishchak.cryptoportfolio.services.exchangers.balances.BalanceService;
 import com.khomishchak.cryptoportfolio.services.security.encryption.AesEncryptionService;
+import com.khomishchak.cryptoportfolio.services.security.encryption.AesEncryptionService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

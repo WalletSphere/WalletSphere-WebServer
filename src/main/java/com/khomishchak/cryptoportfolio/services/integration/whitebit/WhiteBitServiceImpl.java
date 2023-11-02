@@ -5,11 +5,14 @@ import com.khomishchak.cryptoportfolio.model.DepositWithdrawalTransaction;
 
 import com.khomishchak.cryptoportfolio.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.cryptoportfolio.services.exchangers.balances.BalanceService;
+import com.khomishchak.cryptoportfolio.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.exceptions.WhiteBitClientException;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.exceptions.WhiteBitServerException;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
 import com.khomishchak.cryptoportfolio.model.exchanger.Currency;
+import com.khomishchak.cryptoportfolio.repositories.BalanceRepository;
+import com.khomishchak.cryptoportfolio.repositories.UserRepository;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.mappers.WhiteBitResponseMapper;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.model.WhiteBitBalanceResp;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.model.WhiteBitDepositWithdrawalHistoryResp;
@@ -78,6 +81,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
         String apiKey = decryptedKeysPair.getPublicKey();
         validateApiKey(apiKey);
 
+        // TODO: create POJO
         String requestJson = String.format("{\"request\":\"%1$s\",\"nonce\":\"%2$s\",\"nonceWindow\":false}",
                 GET_MAIN_BALANCE_URL,
                 System.currentTimeMillis());
@@ -95,6 +99,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
         String apiKey = keysPair.getPublicKey();
         validateApiKey(apiKey);
 
+        // TODO: create POJO
         String requestJson = String.format(
                 "{\"offset\":%1$d,\"limit\":%2$d,\"request\":\"%3$s\",\"nonce\":\"%4$s\"}",
                 0, 100, GET_MAIN_BALANCE_DEPOSIT_WITHDRAWAL_HISTORY_URL, System.currentTimeMillis()
