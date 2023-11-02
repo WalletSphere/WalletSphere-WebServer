@@ -5,14 +5,11 @@ import com.khomishchak.cryptoportfolio.model.DepositWithdrawalTransaction;
 
 import com.khomishchak.cryptoportfolio.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.cryptoportfolio.services.exchangers.balances.BalanceService;
-import com.khomishchak.cryptoportfolio.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.exceptions.WhiteBitClientException;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.exceptions.WhiteBitServerException;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
 import com.khomishchak.cryptoportfolio.model.exchanger.Currency;
-import com.khomishchak.cryptoportfolio.repositories.BalanceRepository;
-import com.khomishchak.cryptoportfolio.repositories.UserRepository;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.mappers.WhiteBitResponseMapper;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.model.WhiteBitBalanceResp;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.model.WhiteBitDepositWithdrawalHistoryResp;
