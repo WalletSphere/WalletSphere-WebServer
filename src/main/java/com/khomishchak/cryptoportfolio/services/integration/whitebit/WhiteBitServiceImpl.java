@@ -27,6 +27,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Formatter;
 import java.util.List;
@@ -91,6 +93,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
         //TODO: new service layer
         Balance balance = balanceRepository.findByCodeAndUser_Id(CODE, userId).get();
         balance.setCurrencies(availableCurrencies);
+        balance.setLastTimeWasUpdated(LocalDateTime.now());
         return balance;
     }
 
