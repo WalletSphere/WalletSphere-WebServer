@@ -5,7 +5,6 @@ import com.khomishchak.cryptoportfolio.model.exchanger.Currency;
 import com.khomishchak.cryptoportfolio.services.markets.MarketService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -20,9 +19,9 @@ public class BalancePricingServiceImpl implements BalancePricingService {
     }
 
     @Override
-    public void calculateBalanceValueUpToDate(Balance balance, List<Currency> currencies) {
+    public void calculateBalanceValueUpToDate(Balance balance) {
         Map<String, Double> marketValues = marketService.getCurrentMarketValues();
-        Map<String, Currency> currencyMap = currencies.stream()
+        Map<String, Currency> currencyMap = balance.getCurrencies().stream()
                 .collect(Collectors.toMap(Currency::getCurrencyCode, Function.identity()));
 
 
