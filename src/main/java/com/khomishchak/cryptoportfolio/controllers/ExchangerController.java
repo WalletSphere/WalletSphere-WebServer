@@ -36,7 +36,7 @@ public class ExchangerController {
         return exchangerService.addGeneralExchangerInfo(exchangerInfoReq , userId);
     }
 
-    @GetMapping("/balance/{exchangerCode}")
+    @GetMapping("/{exchangerCode}/balance")
     public Balance getAccountBalance(@RequestAttribute Long userId, @PathVariable String exchangerCode) {
         return exchangerService.getMainBalance(userId, ExchangerCode.valueOf(exchangerCode));
     }
@@ -46,12 +46,12 @@ public class ExchangerController {
         return exchangerService.getAllMainBalances(userId);
     }
 
-    @DeleteMapping("/balance/{exchangerCode}")
+    @DeleteMapping("/{exchangerCode}/balance")
     public DeleteExchangerResp deleteAccountBalance(@RequestAttribute long userId, @PathVariable String exchangerCode) {
         return exchangerService.deleteExchangerForUser(userId, ExchangerCode.valueOf(exchangerCode));
     }
 
-    @GetMapping("/wallet/deposit-withdrawal-history/{exchangerCode}")
+    @GetMapping("/{exchangerCode}/wallet/deposit-withdrawal-history")
     public List<DepositWithdrawalTransaction> getAccountWithdrawalDepositWalletHistory(@RequestAttribute long userId,
             @PathVariable String exchangerCode) {
         return exchangerService.getWithdrawalDepositWalletHistory(userId, ExchangerCode.valueOf(exchangerCode));
