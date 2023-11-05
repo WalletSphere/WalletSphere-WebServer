@@ -55,7 +55,7 @@ public abstract class CommonBalanceService implements BalanceService {
     public List<Balance> synchronizeBalances(long userId) {
         List<Balance> balances = synchronizeBalancesFrameWork(userId);
         balanceRepository.saveAll(balances);
-        balances.forEach(balancePricingService::calculateBalanceValueUpToDate);
+        balancePricingService.calculateBalancesValuesUpToDate(balances);
         return balances;
     }
 
