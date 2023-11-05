@@ -86,7 +86,6 @@ public class ExchangerServiceImpl implements ExchangerService {
     @Override
     public SyncDataResp synchronizeBalanceDataForUser(long userId) {
         List<Balance> balances = balanceService.synchronizeBalances(userId);
-        balances.forEach(balancePricingService::calculateBalanceValueUpToDate);
         return new SyncDataResp(balances);
     }
 
