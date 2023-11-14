@@ -1,14 +1,15 @@
 package com.khomishchak.cryptoportfolio.services;
 
 import com.khomishchak.cryptoportfolio.exceptions.GoalsTableNotFoundException;
-import com.khomishchak.cryptoportfolio.exceptions.GoalsTableRecordNotFoundException;
 import com.khomishchak.cryptoportfolio.model.Transaction;
 import com.khomishchak.cryptoportfolio.model.TransactionType;
+import com.khomishchak.cryptoportfolio.model.TransferTransactionType;
 import com.khomishchak.cryptoportfolio.model.User;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
+import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalTableTransaction;
+import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalTableTransactionType;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTableRecord;
-import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsRecordUpdateReq;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTable;
 import com.khomishchak.cryptoportfolio.model.enums.GoalType;
 import com.khomishchak.cryptoportfolio.model.goals.SelfGoal;
@@ -16,6 +17,11 @@ import com.khomishchak.cryptoportfolio.repositories.CryptoGoalsTableRepository;
 import com.khomishchak.cryptoportfolio.repositories.SelfGoalRepository;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerService;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,20 +51,16 @@ public class GoalsServiceImpl implements GoalsService {
 
     @Override
     public CryptoGoalsTable createCryptoGoalsTable(Long userId, CryptoGoalsTable tableRequest) {
-
         User user = userService.getUserById(userId);
         user.setCryptoGoalsTable(tableRequest);
         tableRequest.setUser(user);
-
         return saveCryptoTable(tableRequest);
     }
 
     @Override
     public CryptoGoalsTable getCryptoGoalsTable(Long userId) {
         CryptoGoalsTable table  = userService.getUserById(userId).getCryptoGoalsTable();
-
         table.getTableRecords().forEach(this::setPostQuantityValues);
-
         return table;
     }
 
@@ -80,23 +82,70 @@ public class GoalsServiceImpl implements GoalsService {
     }
 
     @Override
-    public CryptoGoalsTable updateCryptoGoalsTableRecords(List<CryptoGoalsRecordUpdateReq> recordUpdateReq, long tableId) {
-       CryptoGoalsTable cryptoGoalsTable = getCryptoGoalsTableOrThrowException(tableId);
+    public CryptoGoalsTable updateCryptoGoalsTable(CryptoGoalTableTransaction transaction, long tableId) {
+        CryptoGoalsTable cryptoGoalsTable = getCryptoGoalsTableOrThrowException(tableId);
+        updateCryptoGoalsTableWithSingleTransaction(cryptoGoalsTable, transaction);
+        return saveCryptoTable(cryptoGoalsTable);
+    }
 
-       recordUpdateReq.forEach(record -> {
-           CryptoGoalsTableRecord tableRecord = cryptoGoalsTable.getTableRecords().stream()
-                   .filter(r -> r.getName().equals(record.ticker()))
-                   .findFirst()
-                   .orElseThrow(() -> new GoalsTableRecordNotFoundException(String.format("Record with ticker:%s was not found for table with id:%d", record.ticker(), tableId)));
+    private void updateCryptoGoalsTableWithSingleTransaction(CryptoGoalsTable cryptoGoalsTable,
+                                                             CryptoGoalTableTransaction transaction) {
+        cryptoGoalsTable.getTableRecords().forEach(record -> applyTransactionToRecord(record, transaction));
+    }
 
-           tableRecord.setAverageCost(tableRecord.getAverageCost()
-                   .multiply(tableRecord.getQuantity())
-                   .add(record.price().multiply(BigDecimal.valueOf(record.amount())))
-                   .divide(tableRecord.getQuantity().add(BigDecimal.valueOf(record.amount())),4, RoundingMode.DOWN));
-           tableRecord.setQuantity(tableRecord.getQuantity().add(BigDecimal.valueOf(record.amount())));
-       });
+    private void applyTransactionToRecord(CryptoGoalsTableRecord record, CryptoGoalTableTransaction transaction) {
+        if(!record.getName().equals(transaction.getName())) return;
+        record.setAverageCost(calculateNewAveragePriceAfterTransaction(record, transaction));
+        record.setQuantity(calculateNewQuantity(record, transaction));
+    }
 
-       return saveCryptoTable(cryptoGoalsTable);
+    private BigDecimal calculateNewQuantity(CryptoGoalsTableRecord oldRecord, CryptoGoalTableTransaction transaction) {
+        return TransactionType.BUY.equals(transaction.getTransactionType())
+            ? oldRecord.getQuantity().add(transaction.getQuantity())
+            : oldRecord.getQuantity().subtract(transaction.getQuantity());
+    }
+
+    private BigDecimal calculateNewAveragePriceAfterTransaction(CryptoGoalsTableRecord oldRecord,
+                                                                CryptoGoalTableTransaction transaction) {
+        TransactionChangeStateDTO transactionChangeStateDTO = mapToTransactionChangeStateDTO(oldRecord, transaction);
+        return calculateAveragePrice(transactionChangeStateDTO);
+    }
+
+    private BigDecimal calculateAveragePrice(TransactionChangeStateDTO transactionDTO) {
+        BigDecimal oldTotalValue = calculateTotalValue(transactionDTO.getOldRecordAveragePrice(), transactionDTO.getOldRecordQuantity());
+        BigDecimal newOperationTotalValue = calculateTotalValue(transactionDTO.getNewOperationAveragePrice(), transactionDTO.getNewOperationQuantity());
+
+        BigDecimal resultTotalPrice = null;
+        BigDecimal resultQuantity = null;
+
+        if(TransactionType.BUY.equals(transactionDTO.getTransactionType())) {
+            resultTotalPrice = oldTotalValue.add(newOperationTotalValue);
+            resultQuantity = transactionDTO.getOldRecordQuantity().add(transactionDTO.getNewOperationQuantity());
+        } else {
+            resultTotalPrice = oldTotalValue.subtract(newOperationTotalValue);
+            resultQuantity = transactionDTO.getOldRecordQuantity().subtract(transactionDTO.getNewOperationQuantity());
+        }
+
+        if (resultQuantity.compareTo(BigDecimal.ZERO) == 0) {
+            return null;
+        }
+
+        return resultTotalPrice.divide(resultQuantity, 4, RoundingMode.DOWN);
+    }
+
+    private BigDecimal calculateTotalValue(BigDecimal quantity, BigDecimal averagePrice) {
+        return quantity.multiply(averagePrice);
+    }
+
+    private TransactionChangeStateDTO mapToTransactionChangeStateDTO(CryptoGoalsTableRecord record,
+                                                                     CryptoGoalTableTransaction transaction) {
+        return TransactionChangeStateDTO.builder()
+                .newOperationAveragePrice(transaction.getAveragePrice())
+                .newOperationQuantity(transaction.getQuantity())
+                .oldRecordAveragePrice(record.getAverageCost())
+                .oldRecordQuantity(record.getQuantity())
+                .transactionType(transaction.getTransactionType())
+                .build();
     }
 
     @Override
@@ -155,7 +204,7 @@ public class GoalsServiceImpl implements GoalsService {
         return exchangerService.getWithdrawalDepositWalletHistory(userId, code)
                 .stream()
                 .filter(transaction -> transaction.getTicker().equalsIgnoreCase(ticker) &&
-                        transaction.getTransactionType().equals(TransactionType.DEPOSIT) &&
+                        transaction.getTransferTransactionType().equals(TransferTransactionType.DEPOSIT) &&
                         transaction.getCreatedAt().isAfter(startingDate) && transaction.getCreatedAt().isBefore(endingDate))
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue();
@@ -178,14 +227,25 @@ public class GoalsServiceImpl implements GoalsService {
 
     CryptoGoalsTable saveCryptoTable(CryptoGoalsTable table) {
         CryptoGoalsTable createdTable = cryptoGoalsTableRepository.save(table);
-
         createdTable.getTableRecords().forEach(this::setPostQuantityValues);
-
         return createdTable;
     }
 
     private CryptoGoalsTable getCryptoGoalsTableOrThrowException(long tableId) {
         return cryptoGoalsTableRepository.findById(tableId)
                 .orElseThrow(() -> new GoalsTableNotFoundException(String.format("CryptoGoalsTAble with id: %s was not found", tableId)));
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TransactionChangeStateDTO {
+        private BigDecimal oldRecordQuantity;
+        private BigDecimal oldRecordAveragePrice;
+        private BigDecimal newOperationQuantity;
+        private BigDecimal newOperationAveragePrice;
+        private TransactionType transactionType;
     }
 }
