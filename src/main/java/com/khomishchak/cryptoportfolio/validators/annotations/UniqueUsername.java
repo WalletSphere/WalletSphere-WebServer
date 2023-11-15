@@ -1,15 +1,10 @@
 package com.khomishchak.cryptoportfolio.validators.annotations;
 
 import com.khomishchak.cryptoportfolio.validators.UniqueUsernameValidator;
-
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Documented
 @Target({ElementType.FIELD})
@@ -17,7 +12,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = UniqueUsernameValidator.class)
 public @interface UniqueUsername {
 
-    String message() default "This username is already taken";
+    String message() default "USERNAME_ALREADY_TAKEN";
 
     Class<?>[] groups() default {};
 

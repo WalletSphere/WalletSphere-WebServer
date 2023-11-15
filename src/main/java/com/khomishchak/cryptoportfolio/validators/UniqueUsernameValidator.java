@@ -13,12 +13,6 @@ public class UniqueUsernameValidator implements ConstraintValidator<UniqueUserna
     private UserRepository userRepository;
 
     @Override
-    public void initialize(UniqueUsername constraintAnnotation) {
-        ConstraintValidator.super.initialize(constraintAnnotation);
-        System.out.println("UniqueUsername");
-    }
-
-    @Override
     public boolean isValid(String field, ConstraintValidatorContext constraintValidatorContext) {
         return userRepository.findByUsername(field).isEmpty();
     }
