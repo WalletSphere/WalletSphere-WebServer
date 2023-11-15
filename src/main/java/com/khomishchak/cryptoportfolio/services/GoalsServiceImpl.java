@@ -8,20 +8,15 @@ import com.khomishchak.cryptoportfolio.model.User;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalTableTransaction;
-import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalTableTransactionType;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTableRecord;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTable;
 import com.khomishchak.cryptoportfolio.model.enums.GoalType;
 import com.khomishchak.cryptoportfolio.model.goals.SelfGoal;
+import com.khomishchak.cryptoportfolio.model.goals.TransactionChangeStateDTO;
 import com.khomishchak.cryptoportfolio.repositories.CryptoGoalsTableRepository;
 import com.khomishchak.cryptoportfolio.repositories.SelfGoalRepository;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerService;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,18 +107,18 @@ public class GoalsServiceImpl implements GoalsService {
     }
 
     private BigDecimal calculateAveragePrice(TransactionChangeStateDTO transactionDTO) {
-        BigDecimal oldTotalValue = calculateTotalValue(transactionDTO.getOldRecordAveragePrice(), transactionDTO.getOldRecordQuantity());
-        BigDecimal newOperationTotalValue = calculateTotalValue(transactionDTO.getNewOperationAveragePrice(), transactionDTO.getNewOperationQuantity());
+        BigDecimal oldTotalValue = calculateTotalValue(transactionDTO.oldRecordAveragePrice(), transactionDTO.oldRecordQuantity());
+        BigDecimal newOperationTotalValue = calculateTotalValue(transactionDTO.newOperationAveragePrice(), transactionDTO.newOperationQuantity());
 
         BigDecimal resultTotalPrice = null;
         BigDecimal resultQuantity = null;
 
-        if(TransactionType.BUY.equals(transactionDTO.getTransactionType())) {
+        if(TransactionType.BUY.equals(transactionDTO.transactionType())) {
             resultTotalPrice = oldTotalValue.add(newOperationTotalValue);
-            resultQuantity = transactionDTO.getOldRecordQuantity().add(transactionDTO.getNewOperationQuantity());
+            resultQuantity = transactionDTO.oldRecordQuantity().add(transactionDTO.newOperationQuantity());
         } else {
             resultTotalPrice = oldTotalValue.subtract(newOperationTotalValue);
-            resultQuantity = transactionDTO.getOldRecordQuantity().subtract(transactionDTO.getNewOperationQuantity());
+            resultQuantity = transactionDTO.oldRecordQuantity().subtract(transactionDTO.newOperationQuantity());
         }
 
         if (resultQuantity.compareTo(BigDecimal.ZERO) == 0) {
@@ -210,7 +205,7 @@ public class GoalsServiceImpl implements GoalsService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue();
     }
 
-    private CryptoGoalsTableRecord setPostQuantityValues(CryptoGoalsTableRecord entity) {
+    private void setPostQuantityValues(CryptoGoalsTableRecord entity) {
         BigDecimal goalQuantity = entity.getGoalQuantity();
         BigDecimal quantity = entity.getQuantity();
 
@@ -221,8 +216,6 @@ public class GoalsServiceImpl implements GoalsService {
                         .multiply(BigDecimal.valueOf(PERCENTAGE_SCALE))
                         .divide(goalQuantity, 1, RoundingMode.DOWN));
         entity.setFinished(quantity.compareTo(goalQuantity) >= 0);
-
-        return entity;
     }
 
     CryptoGoalsTable saveCryptoTable(CryptoGoalsTable table) {
@@ -234,18 +227,5 @@ public class GoalsServiceImpl implements GoalsService {
     private CryptoGoalsTable getCryptoGoalsTableOrThrowException(long tableId) {
         return cryptoGoalsTableRepository.findById(tableId)
                 .orElseThrow(() -> new GoalsTableNotFoundException(String.format("CryptoGoalsTAble with id: %s was not found", tableId)));
-    }
-
-    @Getter
-    @Setter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TransactionChangeStateDTO {
-        private BigDecimal oldRecordQuantity;
-        private BigDecimal oldRecordAveragePrice;
-        private BigDecimal newOperationQuantity;
-        private BigDecimal newOperationAveragePrice;
-        private TransactionType transactionType;
     }
 }
