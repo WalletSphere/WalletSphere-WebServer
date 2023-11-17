@@ -1,12 +1,10 @@
 package com.khomishchak.cryptoportfolio.services.integration.whitebit;
 
-import com.khomishchak.cryptoportfolio.model.DepositWithdrawalTransaction;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
+import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorService;
 
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class WhiteBitExchangerConnectorService implements ExchangerConnectorService {
@@ -23,7 +21,7 @@ public class WhiteBitExchangerConnectorService implements ExchangerConnectorServ
     }
 
     @Override
-    public List<DepositWithdrawalTransaction> getDepositWithdrawalHistory(long userId) {
+    public ExchangerDepositWithdrawalTransactions getDepositWithdrawalHistory(long userId) {
         return whiteBitService.getDepositWithdrawalHistory(userId);
     }
 }

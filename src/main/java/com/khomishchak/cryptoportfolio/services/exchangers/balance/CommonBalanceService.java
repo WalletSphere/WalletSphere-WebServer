@@ -1,4 +1,4 @@
-package com.khomishchak.cryptoportfolio.services.exchangers.balances;
+package com.khomishchak.cryptoportfolio.services.exchangers.balance;
 
 import com.khomishchak.cryptoportfolio.exceptions.BalanceNotFoundException;
 import com.khomishchak.cryptoportfolio.model.User;
@@ -9,9 +9,12 @@ import com.khomishchak.cryptoportfolio.repositories.BalanceRepository;
 import com.khomishchak.cryptoportfolio.services.UserService;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorService;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorServiceFactory;
+import com.khomishchak.cryptoportfolio.services.exchangers.balance.cache.BalanceCacheHandler;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,16 +28,18 @@ public abstract class CommonBalanceService implements BalanceService {
     private final UserService userService;
     private final BalancePricingService balancePricingService;
     private final Map<ExchangerCode, ExchangerConnectorServiceFactory> exchangerServiceFactories;
+    private final BalanceCacheHandler balanceCacheHandler;
 
 
     public CommonBalanceService(BalanceRepository balanceRepository, UserService userService,
                                 List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
-                                BalancePricingService balancePricingService) {
+                                BalancePricingService balancePricingService, BalanceCacheHandler balanceCacheHandler) {
         this.balanceRepository = balanceRepository;
         this.userService = userService;
         this.exchangerServiceFactories = exchangerServiceFactories.stream()
                 .collect(Collectors.toMap(ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
         this.balancePricingService = balancePricingService;
+        this.balanceCacheHandler = balanceCacheHandler;
     }
 
     // No need to put in cache, because it will be synchronised first, and it will be saved in cache at that stage
@@ -59,10 +64,24 @@ public abstract class CommonBalanceService implements BalanceService {
         return balances;
     }
 
+
+
     @Override
-    @CacheEvict(value = "balanceCache", key = "{#userId, #exchangerCode}")
-    public Balance removeBalance(long userId, ExchangerCode exchangerCode) {
-        return balanceRepository.deleteByUser_IdAndCode(userId, exchangerCode);
+    @Transactional
+    public void deleteBalance(long balanceId) {
+        deleteBalanceFromCache(balanceId);
+
+    }
+
+    @CacheEvict(value = "balanceCache", key = "#balanceId")
+    public void deleteBalanceFromCache(long balanceId) {
+        balanceRepository.deleteById(balanceId);
+        clearWholeBalanceCache(balanceId);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void clearWholeBalanceCache(Long balanceId) {
+        balanceCacheHandler.deleteAllBalanceRelatedCacheInfo(balanceId);
     }
 
     private List<Balance> synchronizeBalancesFrameWork(long userId) {

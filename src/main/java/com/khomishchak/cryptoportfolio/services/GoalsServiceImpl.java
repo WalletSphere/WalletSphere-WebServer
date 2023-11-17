@@ -5,8 +5,8 @@ import com.khomishchak.cryptoportfolio.exceptions.GoalsTableRecordNotFoundExcept
 import com.khomishchak.cryptoportfolio.model.Transaction;
 import com.khomishchak.cryptoportfolio.model.TransactionType;
 import com.khomishchak.cryptoportfolio.model.User;
-import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
+import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTableRecord;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsRecordUpdateReq;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTable;
@@ -145,15 +145,22 @@ public class GoalsServiceImpl implements GoalsService {
     private double getDepositValueForPeriod(User user, String ticker, LocalDateTime startingData, LocalDateTime endingDate) {
         return user.getBalances().stream()
                 .map(Balance::getCode)
-                .map(c -> getDepositValueForPeriodForSingleExchanger(user.getId(), ticker, startingData, endingDate, c))
+                .map(c -> getDepositValueForPeriod(user.getId(), ticker, startingData, endingDate))
                 .reduce(0.0, Double::sum);
     }
 
-    private double getDepositValueForPeriodForSingleExchanger(long userId, String ticker, LocalDateTime startingDate,
-            LocalDateTime endingDate, ExchangerCode code) {
+    private double getDepositValueForPeriod(long userId, String ticker, LocalDateTime startingDate,
+            LocalDateTime endingDate) {
 
-        return exchangerService.getWithdrawalDepositWalletHistory(userId, code)
-                .stream()
+        return exchangerService.getWithdrawalDepositWalletHistory(userId).stream()
+                .map(transactions -> getDepositValueForPeriodForSingleIntegratedBalance(transactions, ticker, startingDate, endingDate))
+                .reduce(0.0, Double::sum);
+    }
+
+    private double getDepositValueForPeriodForSingleIntegratedBalance(ExchangerDepositWithdrawalTransactions transactions,
+                                                                      String ticker, LocalDateTime startingDate,
+                                                                      LocalDateTime endingDate) {
+        return transactions.getTransactions().stream()
                 .filter(transaction -> transaction.getTicker().equalsIgnoreCase(ticker) &&
                         transaction.getTransactionType().equals(TransactionType.DEPOSIT) &&
                         transaction.getCreatedAt().isAfter(startingDate) && transaction.getCreatedAt().isBefore(endingDate))

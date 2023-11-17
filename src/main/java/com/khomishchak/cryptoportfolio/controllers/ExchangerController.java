@@ -1,14 +1,15 @@
 package com.khomishchak.cryptoportfolio.controllers;
 
-import com.khomishchak.cryptoportfolio.model.DepositWithdrawalTransaction;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
+import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.cryptoportfolio.model.requests.RegisterExchangerInfoReq;
 import com.khomishchak.cryptoportfolio.model.response.DeleteExchangerResp;
 import com.khomishchak.cryptoportfolio.model.response.FirstlyGeneratedBalanceResp;
 import com.khomishchak.cryptoportfolio.model.response.SyncDataResp;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -46,22 +48,25 @@ public class ExchangerController {
         return exchangerService.getAllMainBalances(userId);
     }
 
-    @DeleteMapping("/{exchangerCode}/balance")
-    public DeleteExchangerResp deleteAccountBalance(@RequestAttribute long userId, @PathVariable String exchangerCode) {
-        return exchangerService.deleteExchangerForUser(userId, ExchangerCode.valueOf(exchangerCode));
+    @DeleteMapping("/{balanceId}/balance")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAccountBalance(@PathVariable long balanceId) {
+        exchangerService.deleteExchangerForUser(balanceId);
     }
 
-    @GetMapping("/{exchangerCode}/wallet/deposit-withdrawal-history")
-    public List<DepositWithdrawalTransaction> getAccountWithdrawalDepositWalletHistory(@RequestAttribute long userId,
-            @PathVariable String exchangerCode) {
-        return exchangerService.getWithdrawalDepositWalletHistory(userId, ExchangerCode.valueOf(exchangerCode));
+    @GetMapping("/deposit-withdrawal-history")
+    public List<ExchangerDepositWithdrawalTransactions> getWithdrawalDepositTransactionsHistory(@RequestAttribute long userId) {
+        return exchangerService.getWithdrawalDepositWalletHistory(userId);
     }
 
-    // TODO: consider to create a separate controller for sync functionality
     @PostMapping("/synchronize/balance")
     public SyncDataResp synchronizeBalanceDataForUser(@RequestAttribute Long userId) {
         return exchangerService.synchronizeBalanceDataForUser(userId);
     }
 
-    // TODO: create sync API for all exchanger related data
+    @PostMapping("/synchronize/deposit-withdrawal-history")
+    public List<ExchangerDepositWithdrawalTransactions> synchronizeDWTransactionsHistory(@RequestAttribute Long userId) {
+        return exchangerService.synchronizeDepositWithdrawalTransactionsData(userId);
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.khomishchak.cryptoportfolio.services.exchangers.balances;
+package com.khomishchak.cryptoportfolio.services.exchangers.balance;
 
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
 

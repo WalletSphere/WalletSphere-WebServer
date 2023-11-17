@@ -1,10 +1,11 @@
-package com.khomishchak.cryptoportfolio.services.exchangers.balances;
+package com.khomishchak.cryptoportfolio.services.exchangers.balance;
 
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
 import com.khomishchak.cryptoportfolio.repositories.BalanceRepository;
 import com.khomishchak.cryptoportfolio.services.UserService;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorServiceFactory;
+import com.khomishchak.cryptoportfolio.services.exchangers.balance.cache.BalanceCacheHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -21,8 +22,8 @@ public class LocalBalanceService extends CommonBalanceService {
 
     public LocalBalanceService(BalanceRepository balanceRepository, UserService userService,
                                List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
-                               BalancePricingService balancePricingService) {
-        super(balanceRepository, userService, exchangerServiceFactories, balancePricingService);
+                               BalancePricingService balancePricingService, BalanceCacheHandler balanceCacheHandler) {
+        super(balanceRepository, userService, exchangerServiceFactories, balancePricingService, balanceCacheHandler);
         this.balanceRepository = balanceRepository;
         this.balancePricingService = balancePricingService;
     }

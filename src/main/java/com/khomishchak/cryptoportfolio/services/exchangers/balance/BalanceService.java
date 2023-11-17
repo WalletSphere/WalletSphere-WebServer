@@ -1,4 +1,4 @@
-package com.khomishchak.cryptoportfolio.services.exchangers.balances;
+package com.khomishchak.cryptoportfolio.services.exchangers.balance;
 
 import com.khomishchak.cryptoportfolio.model.User;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
@@ -11,6 +11,6 @@ public interface BalanceService {
     Balance registerBalanceEntryInfo(ExchangerCode code, String balanceName, User user);
     List<Balance> getMainBalances(long userId);
     Balance getMainBalance(long userId, ExchangerCode exchangerCode);
-    Balance removeBalance(long userId, ExchangerCode exchangerCode);
+    void deleteBalance(long balanceId);
     List<Balance> synchronizeBalances(long userId);
 }

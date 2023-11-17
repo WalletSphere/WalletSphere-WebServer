@@ -1,6 +1,6 @@
 package com.khomishchak.cryptoportfolio.services.integration.whitebit.mappers;
 
-import com.khomishchak.cryptoportfolio.model.DepositWithdrawalTransaction;
+import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.DepositWithdrawalTransaction;
 import com.khomishchak.cryptoportfolio.model.TransactionType;
 import com.khomishchak.cryptoportfolio.model.exchanger.Currency;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.model.WhiteBitBalanceResp;

@@ -1,4 +1,4 @@
 package com.khomishchak.cryptoportfolio.model.response;
 
-public record DeleteExchangerResp(long userId, long balanceId) {
+public record DeleteExchangerResp(long balanceId) {
 }

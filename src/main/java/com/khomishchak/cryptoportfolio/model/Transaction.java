@@ -1,10 +1,11 @@
 package com.khomishchak.cryptoportfolio.model;
 
-import org.springframework.stereotype.Service;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,8 +19,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@MappedSuperclass
 public class Transaction {
 
+    @Id
     private String transactionId;
     private String transactionHash;
     private String ticker;

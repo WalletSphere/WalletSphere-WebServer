@@ -1,8 +1,8 @@
 package com.khomishchak.cryptoportfolio.services.exchangers;
 
-import com.khomishchak.cryptoportfolio.model.DepositWithdrawalTransaction;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
+import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.cryptoportfolio.model.requests.RegisterExchangerInfoReq;
 import com.khomishchak.cryptoportfolio.model.response.DeleteExchangerResp;
 import com.khomishchak.cryptoportfolio.model.response.FirstlyGeneratedBalanceResp;
@@ -19,9 +19,10 @@ public interface ExchangerService {
 
     List<Balance> getAllMainBalances(long userId);
 
-    List<DepositWithdrawalTransaction> getWithdrawalDepositWalletHistory(long userId, ExchangerCode exchangerCode);
+    List<ExchangerDepositWithdrawalTransactions> getWithdrawalDepositWalletHistory(long userId);
 
     SyncDataResp synchronizeBalanceDataForUser(long userId);
+    List<ExchangerDepositWithdrawalTransactions> synchronizeDepositWithdrawalTransactionsData(long userId);
 
-    DeleteExchangerResp deleteExchangerForUser(long userId, ExchangerCode code);
+    void deleteExchangerForUser(long balanceId);
 }

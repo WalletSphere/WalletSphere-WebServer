@@ -1,29 +1,29 @@
 package com.khomishchak.cryptoportfolio.services.exchangers;
 
-import com.khomishchak.cryptoportfolio.model.DepositWithdrawalTransaction;
 import com.khomishchak.cryptoportfolio.model.User;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import com.khomishchak.cryptoportfolio.model.enums.RegistrationStatus;
 import com.khomishchak.cryptoportfolio.model.exchanger.ApiKeySetting;
 import com.khomishchak.cryptoportfolio.model.exchanger.ApiKeysPair;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
+import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.cryptoportfolio.model.requests.RegisterApiKeysReq;
 import com.khomishchak.cryptoportfolio.model.requests.RegisterExchangerInfoReq;
 import com.khomishchak.cryptoportfolio.model.response.DeleteExchangerResp;
 import com.khomishchak.cryptoportfolio.model.response.FirstlyGeneratedBalanceResp;
-import com.khomishchak.cryptoportfolio.model.response.RegisterApiKeysResp;
 import com.khomishchak.cryptoportfolio.model.response.SyncDataResp;
 import com.khomishchak.cryptoportfolio.repositories.ApiKeySettingRepository;
 import com.khomishchak.cryptoportfolio.repositories.UserRepository;
 
-import com.khomishchak.cryptoportfolio.services.exchangers.balances.BalancePricingService;
-import com.khomishchak.cryptoportfolio.services.exchangers.balances.BalanceService;
+import com.khomishchak.cryptoportfolio.services.exchangers.balance.BalancePricingService;
+import com.khomishchak.cryptoportfolio.services.exchangers.balance.BalanceService;
+import com.khomishchak.cryptoportfolio.services.exchangers.balance.history.AccountBalanceTransferOperationsHistoryService;
 import com.khomishchak.cryptoportfolio.services.security.encryption.AesEncryptionService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import jakarta.transaction.Transactional;
 
@@ -35,19 +35,21 @@ public class ExchangerServiceImpl implements ExchangerService {
     private final AesEncryptionService aesEncryptionService;
     private final BalanceService balanceService;
     private final BalancePricingService balancePricingService;
-    private final Map<ExchangerCode, ExchangerConnectorServiceFactory> exchangerServiceFactories;
+    private final AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     public ExchangerServiceImpl(UserRepository userRepository, ApiKeySettingRepository apiKeySettingRepository,
-                                AesEncryptionService aesEncryptionService,
-                                List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
-                                BalanceService balanceService, BalancePricingService balancePricingService) {
+                                AesEncryptionService aesEncryptionService, BalanceService balanceService,
+                                BalancePricingService balancePricingService,
+                                AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService) {
         this.userRepository = userRepository;
         this.apiKeySettingRepository = apiKeySettingRepository;
         this.aesEncryptionService = aesEncryptionService;
         this.balanceService = balanceService;
-        this.exchangerServiceFactories = exchangerServiceFactories.stream()
-                .collect(Collectors.toMap(ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
         this.balancePricingService = balancePricingService;
+        this.accountBalanceTransferOperationsHistoryService = accountBalanceTransferOperationsHistoryService;
     }
 
     @Override
@@ -57,7 +59,7 @@ public class ExchangerServiceImpl implements ExchangerService {
         RegisterApiKeysReq apiKeys = exchangerInfoReq.apiKeysReq();
         ExchangerCode code = exchangerInfoReq.code();
 
-        generateApiKeysSettingsForUser(user, apiKeys.secretKey(), apiKeys.publicKey(), code);
+        persistApiKeysSettings(user, apiKeys.secretKey(), apiKeys.publicKey(), code);
 
         Balance emptyBalance = balanceService.registerBalanceEntryInfo(code, exchangerInfoReq.balanceName(), user);
 
@@ -76,11 +78,9 @@ public class ExchangerServiceImpl implements ExchangerService {
         return balanceService.getMainBalances(userId);
     }
 
-    // TODO: should be moved to another service layer that will handle cache and synchronize implementations
     @Override
-    public List<DepositWithdrawalTransaction> getWithdrawalDepositWalletHistory(long userId, ExchangerCode exchangerCode) {
-        ExchangerConnectorService exchangerConnectorService = getExchangerConnectorService(exchangerCode);
-        return exchangerConnectorService.getDepositWithdrawalHistory(userId);
+    public List<ExchangerDepositWithdrawalTransactions> getWithdrawalDepositWalletHistory(long userId) {
+        return accountBalanceTransferOperationsHistoryService.getDepositWithdrawalTransactionsHistory(userId);
     }
 
     @Override
@@ -90,11 +90,16 @@ public class ExchangerServiceImpl implements ExchangerService {
     }
 
     @Override
-    public DeleteExchangerResp deleteExchangerForUser(long userId, ExchangerCode code) {
-        return new DeleteExchangerResp(userId, balanceService.removeBalance(userId, code).getId());
+    public List<ExchangerDepositWithdrawalTransactions> synchronizeDepositWithdrawalTransactionsData(long userId) {
+        return accountBalanceTransferOperationsHistoryService.synchronizeDepositWithdrawalTransactionsHistory(userId);
     }
 
-    private RegisterApiKeysResp generateApiKeysSettingsForUser(User user, String privateKey, String publicApi, ExchangerCode code) {
+    @Override
+    public void deleteExchangerForUser(long balanceId) {
+        balanceService.deleteBalance(balanceId);
+    }
+
+    private void persistApiKeysSettings(User user, String privateKey, String publicApi, ExchangerCode code) {
         ApiKeysPair apiKeysPair = ApiKeysPair.builder()
                 .publicApi(aesEncryptionService.encrypt(publicApi))
                 .privateKey(aesEncryptionService.encrypt(privateKey))
@@ -109,12 +114,6 @@ public class ExchangerServiceImpl implements ExchangerService {
 
         user.getApiKeysSettings().add(apiKeySetting);
 
-        ApiKeySetting createdApiKeySettings = apiKeySettingRepository.save(apiKeySetting);
-
-        return new RegisterApiKeysResp(user.getId(), createdApiKeySettings.getId(), RegistrationStatus.SUCCESSFUL);
-    }
-
-    ExchangerConnectorService getExchangerConnectorService(ExchangerCode exchangerCode) {
-        return exchangerServiceFactories.get(exchangerCode).newInstance();
+        apiKeySettingRepository.save(apiKeySetting);
     }
 }
