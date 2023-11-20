@@ -8,6 +8,7 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.khomishchak.cryptoportfolio.model.Transaction;
 import com.khomishchak.cryptoportfolio.model.TransactionType;
+import com.khomishchak.cryptoportfolio.model.TransferTransactionType;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,7 +29,7 @@ import lombok.Setter;
 public class DepositWithdrawalTransaction extends Transaction {
 
     @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
+    private TransferTransactionType transferTransactionType;
 
     @ManyToOne
     @JoinColumn(name = "deposit_withdrawal_transactions_history_id")
@@ -37,8 +38,8 @@ public class DepositWithdrawalTransaction extends Transaction {
 
     @Builder(builderMethodName = "depositWithdrawalTransactionBuilder")
     public DepositWithdrawalTransaction(String transactionId, String transactionHash, String ticker, BigDecimal fee,
-                                        BigDecimal amount, LocalDateTime createdAt, TransactionType transactionType) {
+                                        BigDecimal amount, LocalDateTime createdAt, TransferTransactionType transferTransactionType) {
         super(transactionId, transactionHash, ticker, fee, amount, createdAt);
-        this.transactionType = transactionType;
+        this.transferTransactionType = transferTransactionType;
     }
 }
