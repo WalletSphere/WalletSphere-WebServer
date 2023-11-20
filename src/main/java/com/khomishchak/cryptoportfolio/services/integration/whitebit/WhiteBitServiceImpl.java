@@ -6,6 +6,7 @@ import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.DepositWithdra
 import com.khomishchak.cryptoportfolio.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.cryptoportfolio.repositories.BalanceRepository;
+import com.khomishchak.cryptoportfolio.repositories.history.DepositWithdrawalTransactionsHistoryRepository;
 import com.khomishchak.cryptoportfolio.services.exchangers.balance.BalanceService;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.exceptions.WhiteBitClientException;
 import com.khomishchak.cryptoportfolio.services.integration.whitebit.exceptions.WhiteBitServerException;
@@ -33,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Optional;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -61,18 +63,20 @@ public class WhiteBitServiceImpl implements WhiteBitService {
     private final int retryMaxAttempts;
     private final Duration retryMinBackoff;
     private final WhiteBitResponseMapper responseMapper;
+    private final DepositWithdrawalTransactionsHistoryRepository depositWithdrawalTransactionsHistoryRepository;
 
     public WhiteBitServiceImpl(BalanceRepository balanceRepository,
             @Qualifier("WhiteBitApiWebClient") WebClient webClient, ApiKeySettingRepositoryAdapter apiKeySettingRepositoryAdapter,
             @Value("${ws.integration.exchanger.api.retry.maxAttempts:2}") int retryMaxAttempts,
             @Value("${ws.integration.exchanger.api.retry.minBackoffSeconds:2}") int retryMinBackoffSeconds,
-            WhiteBitResponseMapper responseMapper) {
+            WhiteBitResponseMapper responseMapper, DepositWithdrawalTransactionsHistoryRepository depositWithdrawalTransactionsHistoryRepository) {
         this.apiKeySettingRepositoryAdapter = apiKeySettingRepositoryAdapter;
         this.balanceRepository = balanceRepository;
         this.webClient = webClient;
         this.retryMaxAttempts = retryMaxAttempts;
         this.retryMinBackoff = Duration.ofSeconds(retryMinBackoffSeconds);
         this.responseMapper = responseMapper;
+        this.depositWithdrawalTransactionsHistoryRepository = depositWithdrawalTransactionsHistoryRepository;
     }
 
     @Override
@@ -118,14 +122,30 @@ public class WhiteBitServiceImpl implements WhiteBitService {
 
     private ExchangerDepositWithdrawalTransactions generateDepositWithdrawalHistoryResp(WhiteBitDepositWithdrawalHistoryResp response,
                                                                                         long userId) {
-        ExchangerDepositWithdrawalTransactions exchangerTransactions =  ExchangerDepositWithdrawalTransactions.builder()
-                .code(CODE)
-                .userId(userId)
-                .build();
-        List<DepositWithdrawalTransaction> transactions = responseMapper.mapWithdrawalDepositHistoryToTransactions(response);
-        assigneeTransactionsToExchangerTransactionsEntity(transactions, exchangerTransactions);
 
-        return populateBalanceWithDepositWithdrawalTransactions(exchangerTransactions);
+        List<DepositWithdrawalTransaction> transactions = responseMapper.mapWithdrawalDepositHistoryToTransactions(response);
+        Balance balance = balanceRepository.findByCodeAndUser_Id(CODE, userId).get();
+
+        ExchangerDepositWithdrawalTransactions exchangerTransactions = getExchangerDepositWithdrawalTransactions(balance);
+        assigneeTransactionsToExchangerTransactionsEntity(transactions, exchangerTransactions);
+        balance.setDepositWithdrawalTransactions(exchangerTransactions);
+
+        return exchangerTransactions;
+    }
+
+    private ExchangerDepositWithdrawalTransactions getExchangerDepositWithdrawalTransactions (Balance balance) {
+        Optional<ExchangerDepositWithdrawalTransactions> byBalanceId =
+                depositWithdrawalTransactionsHistoryRepository.findByBalance_Id(balance.getId());
+
+        return byBalanceId.orElseGet(() -> getNewExchangerDepositWithdrawalTransactions(balance));
+    }
+
+    private ExchangerDepositWithdrawalTransactions getNewExchangerDepositWithdrawalTransactions(Balance balance) {
+        return ExchangerDepositWithdrawalTransactions.builder()
+                .code(CODE)
+                .userId(balance.getUserId())
+                .balance(balance)
+                .build();
     }
 
     private void assigneeTransactionsToExchangerTransactionsEntity(List<DepositWithdrawalTransaction> transactions,
@@ -133,13 +153,6 @@ public class WhiteBitServiceImpl implements WhiteBitService {
 
         transactions.forEach(transaction -> transaction.setExchangerDepositWithdrawalTransactions(exchangerTransactions));
         exchangerTransactions.setTransactions(transactions);
-    }
-
-    ExchangerDepositWithdrawalTransactions populateBalanceWithDepositWithdrawalTransactions(ExchangerDepositWithdrawalTransactions transactions) {
-        Balance mainBalance = balanceRepository.findByCodeAndUser_Id(CODE, transactions.getUserId()).get();
-        mainBalance.setDepositWithdrawalTransactions(transactions);
-        transactions.setBalance(mainBalance);
-        return transactions;
     }
 
     private <T> T makeWebPostRequest(String uri, String requestJson, DecryptedApiKeySettingDTO keysPair, Class<T> responseType) {

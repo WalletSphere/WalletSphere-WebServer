@@ -9,7 +9,6 @@ import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
 import com.khomishchak.cryptoportfolio.model.exchanger.trasaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.cryptoportfolio.model.requests.RegisterApiKeysReq;
 import com.khomishchak.cryptoportfolio.model.requests.RegisterExchangerInfoReq;
-import com.khomishchak.cryptoportfolio.model.response.DeleteExchangerResp;
 import com.khomishchak.cryptoportfolio.model.response.FirstlyGeneratedBalanceResp;
 import com.khomishchak.cryptoportfolio.model.response.SyncDataResp;
 import com.khomishchak.cryptoportfolio.repositories.ApiKeySettingRepository;
@@ -19,8 +18,6 @@ import com.khomishchak.cryptoportfolio.services.exchangers.balance.BalancePricin
 import com.khomishchak.cryptoportfolio.services.exchangers.balance.BalanceService;
 import com.khomishchak.cryptoportfolio.services.exchangers.balance.history.AccountBalanceTransferOperationsHistoryService;
 import com.khomishchak.cryptoportfolio.services.security.encryption.AesEncryptionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,9 +33,6 @@ public class ExchangerServiceImpl implements ExchangerService {
     private final BalanceService balanceService;
     private final BalancePricingService balancePricingService;
     private final AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService;
-
-    @Autowired
-    private CacheManager cacheManager;
 
     public ExchangerServiceImpl(UserRepository userRepository, ApiKeySettingRepository apiKeySettingRepository,
                                 AesEncryptionService aesEncryptionService, BalanceService balanceService,

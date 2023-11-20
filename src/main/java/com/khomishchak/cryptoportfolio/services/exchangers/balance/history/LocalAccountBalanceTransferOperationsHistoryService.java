@@ -12,13 +12,13 @@ import java.util.List;
 
 @Service
 @ConditionalOnProperty(value = "ws.account.balance.operations.history.service.type", havingValue = "local")
-public class LocalAccountBalanceTransferOperationsOperationsHistoryService extends CommonAccountBalanceTransferOperationsHistoryService {
+public class LocalAccountBalanceTransferOperationsHistoryService extends CommonAccountBalanceTransferOperationsHistoryService {
 
     private final DepositWithdrawalTransactionsHistoryRepository depositWithdrawalTransactionsHistoryRepository;
 
-    public LocalAccountBalanceTransferOperationsOperationsHistoryService(UserService userService,
-                                                                         List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
-                                                                         DepositWithdrawalTransactionsHistoryRepository depositWithdrawalTransactionsHistoryRepository) {
+    public LocalAccountBalanceTransferOperationsHistoryService(UserService userService,
+                                                               List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
+                                                               DepositWithdrawalTransactionsHistoryRepository depositWithdrawalTransactionsHistoryRepository) {
         super(userService, exchangerServiceFactories, depositWithdrawalTransactionsHistoryRepository);
         this.depositWithdrawalTransactionsHistoryRepository = depositWithdrawalTransactionsHistoryRepository;
     }
