@@ -1,6 +1,5 @@
 package com.khomishchak.cryptoportfolio.adapters;
 
-import com.khomishchak.cryptoportfolio.model.exchanger.ApiKeySetting;
 import com.khomishchak.cryptoportfolio.model.exchanger.ApiKeysPair;
 import com.khomishchak.cryptoportfolio.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.cryptoportfolio.repositories.ApiKeySettingRepository;

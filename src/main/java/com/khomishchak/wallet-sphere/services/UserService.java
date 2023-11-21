@@ -6,8 +6,6 @@ import com.khomishchak.cryptoportfolio.model.requests.RegistrationRequest;
 import com.khomishchak.cryptoportfolio.model.response.LoginResult;
 import com.khomishchak.cryptoportfolio.model.response.RegistrationResult;
 
-import java.util.Optional;
-
 public interface UserService {
 
     User getUserById(Long userId);

@@ -27,24 +27,24 @@ import java.util.stream.Collectors;
 import jakarta.transaction.Transactional;
 
 @Service
-public class ExchangerServiceImpl implements ExchangerService {
+public class ExchangerServiceImpl implements com.khomishchak.cryptoportfolio.services.exchangers.ExchangerService {
 
     private final UserRepository userRepository;
     private final ApiKeySettingRepository apiKeySettingRepository;
     private final AesEncryptionService aesEncryptionService;
     private final BalanceService balanceService;
-    private final Map<ExchangerCode, ExchangerConnectorServiceFactory> exchangerServiceFactories;
+    private final Map<ExchangerCode, com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorServiceFactory> exchangerServiceFactories;
 
     public ExchangerServiceImpl(UserRepository userRepository, ApiKeySettingRepository apiKeySettingRepository,
                                 AesEncryptionService aesEncryptionService,
-                                List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
+                                List<com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorServiceFactory> exchangerServiceFactories,
                                 BalanceService balanceService) {
         this.userRepository = userRepository;
         this.apiKeySettingRepository = apiKeySettingRepository;
         this.aesEncryptionService = aesEncryptionService;
         this.balanceService = balanceService;
         this.exchangerServiceFactories = exchangerServiceFactories.stream()
-                .collect(Collectors.toMap(ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
+                .collect(Collectors.toMap(com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ExchangerServiceImpl implements ExchangerService {
     // TODO: should be moved to another service layer that will handle cache and synchronize implementations
     @Override
     public List<DepositWithdrawalTransaction> getWithdrawalDepositWalletHistory(long userId, ExchangerCode exchangerCode) {
-        ExchangerConnectorService exchangerConnectorService = getExchangerConnectorService(exchangerCode);
+        com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorService exchangerConnectorService = getExchangerConnectorService(exchangerCode);
         return exchangerConnectorService.getDepositWithdrawalHistory(userId);
     }
 
@@ -109,7 +109,7 @@ public class ExchangerServiceImpl implements ExchangerService {
         return new RegisterApiKeysResp(user.getId(), createdApiKeySettings.getId(), RegistrationStatus.SUCCESSFUL);
     }
 
-    ExchangerConnectorService getExchangerConnectorService(ExchangerCode exchangerCode) {
+    com.khomishchak.cryptoportfolio.services.exchangers.ExchangerConnectorService getExchangerConnectorService(ExchangerCode exchangerCode) {
         return exchangerServiceFactories.get(exchangerCode).newInstance();
     }
 }

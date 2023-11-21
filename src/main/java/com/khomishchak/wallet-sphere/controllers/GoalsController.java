@@ -1,7 +1,6 @@
 package com.khomishchak.cryptoportfolio.controllers;
 
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalTableTransaction;
-import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsRecordUpdateReq;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTable;
 import com.khomishchak.cryptoportfolio.model.goals.SelfGoal;
 import com.khomishchak.cryptoportfolio.services.GoalsService;

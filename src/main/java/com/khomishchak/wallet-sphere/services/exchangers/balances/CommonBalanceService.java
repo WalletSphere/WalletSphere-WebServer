@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
-public abstract class CommonBalanceService implements BalanceService {
+public abstract class CommonBalanceService implements com.khomishchak.cryptoportfolio.services.exchangers.balances.BalanceService {
 
     private final BalanceRepository balanceRepository;
     private final UserService userService;

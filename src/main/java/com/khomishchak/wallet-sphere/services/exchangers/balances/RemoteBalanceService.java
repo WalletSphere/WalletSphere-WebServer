@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @ConditionalOnProperty(value = "ws.balance.service.type", havingValue = "remote")
-public class RemoteBalanceService extends CommonBalanceService {
+public class RemoteBalanceService extends com.khomishchak.cryptoportfolio.services.exchangers.balances.CommonBalanceService {
 
     public RemoteBalanceService(BalanceRepository balanceRepository,
                                 List<ExchangerConnectorServiceFactory> exchangerServiceFactories, UserService userService) {
