@@ -52,9 +52,6 @@ public class Balance {
     @ElementCollection
     private List<Currency> currencies;
 
-    @Transient
-    private double totalValue;
-
     @JsonIgnore
     public User getUser() {
         return user;

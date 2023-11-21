@@ -15,9 +15,9 @@ import java.util.List;
 @ConditionalOnProperty(value = "ws.balance.service.type", havingValue = "remote")
 public class RemoteBalanceService extends CommonBalanceService {
 
-    public RemoteBalanceService(BalanceRepository balanceRepository, BalancePricingService balancePricingService,
+    public RemoteBalanceService(BalanceRepository balanceRepository,
                                 List<ExchangerConnectorServiceFactory> exchangerServiceFactories, UserService userService) {
-        super(balanceRepository, userService, exchangerServiceFactories, balancePricingService);
+        super(balanceRepository, userService, exchangerServiceFactories);
     }
 
     @Override

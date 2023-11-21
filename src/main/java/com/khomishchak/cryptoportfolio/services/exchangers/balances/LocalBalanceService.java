@@ -17,23 +17,16 @@ public class LocalBalanceService extends CommonBalanceService {
 
     private final BalanceRepository balanceRepository;
 
-    private final BalancePricingService balancePricingService;
-
     public LocalBalanceService(BalanceRepository balanceRepository, UserService userService,
-                               List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
-                               BalancePricingService balancePricingService) {
-        super(balanceRepository, userService, exchangerServiceFactories, balancePricingService);
+                               List<ExchangerConnectorServiceFactory> exchangerServiceFactories) {
+        super(balanceRepository, userService, exchangerServiceFactories);
         this.balanceRepository = balanceRepository;
-        this.balancePricingService = balancePricingService;
     }
 
     @Override
     @Cacheable(value = "balanceCache", key = "#userId")
     public List<Balance> getMainBalances(long userId) {
-        List<Balance> balances = balanceRepository.findAllByUser_Id(userId);
-        // if app restarted and cache is empty
-        balancePricingService.calculateBalancesValuesUpToDate(balances);
-        return balances;
+        return balanceRepository.findAllByUser_Id(userId);
     }
 
     @Override

@@ -23,18 +23,15 @@ public abstract class CommonBalanceService implements BalanceService {
 
     private final BalanceRepository balanceRepository;
     private final UserService userService;
-    private final BalancePricingService balancePricingService;
     private final Map<ExchangerCode, ExchangerConnectorServiceFactory> exchangerServiceFactories;
 
 
     public CommonBalanceService(BalanceRepository balanceRepository, UserService userService,
-                                List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
-                                BalancePricingService balancePricingService) {
+                                List<ExchangerConnectorServiceFactory> exchangerServiceFactories) {
         this.balanceRepository = balanceRepository;
         this.userService = userService;
         this.exchangerServiceFactories = exchangerServiceFactories.stream()
                 .collect(Collectors.toMap(ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
-        this.balancePricingService = balancePricingService;
     }
 
     // No need to put in cache, because it will be synchronised first, and it will be saved in cache at that stage
@@ -55,7 +52,6 @@ public abstract class CommonBalanceService implements BalanceService {
     public List<Balance> synchronizeBalances(long userId) {
         List<Balance> balances = synchronizeBalancesFrameWork(userId);
         balanceRepository.saveAll(balances);
-        balancePricingService.calculateBalancesValuesUpToDate(balances);
         return balances;
     }
 

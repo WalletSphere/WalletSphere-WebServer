@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CryptoPortfolioApplication {
+public class WalletSphereApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CryptoPortfolioApplication.class, args);
+		SpringApplication.run(WalletSphereApplication.class, args);
 	}
 
 }

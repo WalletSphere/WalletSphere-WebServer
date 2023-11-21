@@ -16,7 +16,6 @@ import com.khomishchak.cryptoportfolio.model.response.SyncDataResp;
 import com.khomishchak.cryptoportfolio.repositories.ApiKeySettingRepository;
 import com.khomishchak.cryptoportfolio.repositories.UserRepository;
 
-import com.khomishchak.cryptoportfolio.services.exchangers.balances.BalancePricingService;
 import com.khomishchak.cryptoportfolio.services.exchangers.balances.BalanceService;
 import com.khomishchak.cryptoportfolio.services.security.encryption.AesEncryptionService;
 import org.springframework.stereotype.Service;
@@ -34,20 +33,18 @@ public class ExchangerServiceImpl implements ExchangerService {
     private final ApiKeySettingRepository apiKeySettingRepository;
     private final AesEncryptionService aesEncryptionService;
     private final BalanceService balanceService;
-    private final BalancePricingService balancePricingService;
     private final Map<ExchangerCode, ExchangerConnectorServiceFactory> exchangerServiceFactories;
 
     public ExchangerServiceImpl(UserRepository userRepository, ApiKeySettingRepository apiKeySettingRepository,
                                 AesEncryptionService aesEncryptionService,
                                 List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
-                                BalanceService balanceService, BalancePricingService balancePricingService) {
+                                BalanceService balanceService) {
         this.userRepository = userRepository;
         this.apiKeySettingRepository = apiKeySettingRepository;
         this.aesEncryptionService = aesEncryptionService;
         this.balanceService = balanceService;
         this.exchangerServiceFactories = exchangerServiceFactories.stream()
                 .collect(Collectors.toMap(ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
-        this.balancePricingService = balancePricingService;
     }
 
     @Override
@@ -66,9 +63,7 @@ public class ExchangerServiceImpl implements ExchangerService {
 
     @Override
     public Balance getMainBalance(long userId, ExchangerCode exchangerCode) {
-        Balance balance = balanceService.getMainBalance(userId, exchangerCode);
-        balancePricingService.calculateBalanceValueUpToDate(balance);
-        return balance;
+        return balanceService.getMainBalance(userId, exchangerCode);
     }
 
     @Override

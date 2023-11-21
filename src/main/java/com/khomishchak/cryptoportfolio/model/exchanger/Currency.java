@@ -17,7 +17,4 @@ public class Currency {
     private String currencyCode;
 
     private double amount;
-
-    @Transient
-    private double totalValue;
 }
