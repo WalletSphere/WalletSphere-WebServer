@@ -11,7 +11,6 @@ import com.khomishchak.cryptoportfolio.model.response.RegistrationResult;
 import com.khomishchak.cryptoportfolio.repositories.UserRepository;
 import com.khomishchak.cryptoportfolio.security.UserDetailsImpl;
 import com.khomishchak.cryptoportfolio.services.security.JwtService;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -89,7 +88,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private RegistrationResult getRegistrationResult(User createdUser, DeviceType registrationDeviceType) {
-
         return new RegistrationResult(createdUser.getUsername(), createdUser.getEmail(),
                 createdUser.getUserRole(), generateJwtToken(createdUser, registrationDeviceType));
     }

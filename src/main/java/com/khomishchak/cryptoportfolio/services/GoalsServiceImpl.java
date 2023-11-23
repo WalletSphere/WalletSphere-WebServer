@@ -6,16 +6,15 @@ import com.khomishchak.cryptoportfolio.model.Transaction;
 import com.khomishchak.cryptoportfolio.model.TransactionType;
 import com.khomishchak.cryptoportfolio.model.User;
 import com.khomishchak.cryptoportfolio.model.enums.ExchangerCode;
+import com.khomishchak.cryptoportfolio.model.enums.GoalType;
 import com.khomishchak.cryptoportfolio.model.exchanger.Balance;
-import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTableRecord;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsRecordUpdateReq;
 import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTable;
-import com.khomishchak.cryptoportfolio.model.enums.GoalType;
+import com.khomishchak.cryptoportfolio.model.goals.CryptoGoalsTableRecord;
 import com.khomishchak.cryptoportfolio.model.goals.SelfGoal;
 import com.khomishchak.cryptoportfolio.repositories.CryptoGoalsTableRepository;
 import com.khomishchak.cryptoportfolio.repositories.SelfGoalRepository;
 import com.khomishchak.cryptoportfolio.services.exchangers.ExchangerService;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,26 +55,12 @@ public class GoalsServiceImpl implements GoalsService {
     @Override
     public CryptoGoalsTable getCryptoGoalsTable(Long userId) {
         CryptoGoalsTable table  = userService.getUserById(userId).getCryptoGoalsTable();
-
         table.getTableRecords().forEach(this::setPostQuantityValues);
-
         return table;
     }
 
     @Override
     public CryptoGoalsTable updateCryptoGoalsTable(CryptoGoalsTable cryptoGoalsTable) {
-        CryptoGoalsTable cryptoGoalsTableEn = getCryptoGoalsTable(cryptoGoalsTable.getId());
-
-        cryptoGoalsTable.getTableRecords().forEach(r -> {
-            cryptoGoalsTableEn.getTableRecords().forEach(rEn -> {
-                if (r.getName().equals(rEn.getName())) {
-                    rEn.setGoalQuantity(r.getGoalQuantity());
-                    rEn.setQuantity(r.getQuantity());
-                    rEn.setAverageCost(r.getAverageCost());
-                }
-            });
-        });
-
         return saveCryptoTable(cryptoGoalsTable);
     }
 
@@ -178,9 +163,7 @@ public class GoalsServiceImpl implements GoalsService {
 
     CryptoGoalsTable saveCryptoTable(CryptoGoalsTable table) {
         CryptoGoalsTable createdTable = cryptoGoalsTableRepository.save(table);
-
         createdTable.getTableRecords().forEach(this::setPostQuantityValues);
-
         return createdTable;
     }
 
