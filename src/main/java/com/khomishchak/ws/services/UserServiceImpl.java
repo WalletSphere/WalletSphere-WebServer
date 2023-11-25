@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
                 .acceptTC(registrationRequest.acceptTC())
                 .createdTime(currentMoment)
                 .lastLoginTime(currentMoment)
-                .userRole(UserRole.NORMAL)
+                .userRole(UserRole.USER)
                 .build();
 
         return getRegistrationResult(userRepository.save(newUser), registrationRequest.deviceType());

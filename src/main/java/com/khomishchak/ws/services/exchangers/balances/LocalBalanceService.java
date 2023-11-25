@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @ConditionalOnProperty(value = "ws.balance.service.type", havingValue = "local")
-public class LocalBalanceService extends com.khomishchak.ws.services.exchangers.balances.CommonBalanceService {
+public class LocalBalanceService extends CommonBalanceService {
 
     private final BalanceRepository balanceRepository;
 
