@@ -107,7 +107,7 @@ public class ExchangerServiceImpl implements ExchangerService {
         return new RegisterApiKeysResp(user.getId(), createdApiKeySettings.getId(), RegistrationStatus.SUCCESSFUL);
     }
 
-    com.khomishchak.ws.services.exchangers.ExchangerConnectorService getExchangerConnectorService(ExchangerCode exchangerCode) {
+    ExchangerConnectorService getExchangerConnectorService(ExchangerCode exchangerCode) {
         return exchangerServiceFactories.get(exchangerCode).newInstance();
     }
 }
