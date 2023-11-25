@@ -1,7 +1,12 @@
 package com.khomishchak.ws.model.exchanger;
 
 import jakarta.persistence.Embeddable;
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor

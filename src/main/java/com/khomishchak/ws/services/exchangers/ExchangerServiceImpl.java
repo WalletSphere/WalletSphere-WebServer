@@ -25,24 +25,24 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-public class ExchangerServiceImpl implements com.khomishchak.ws.services.exchangers.ExchangerService {
+public class ExchangerServiceImpl implements ExchangerService {
 
     private final UserRepository userRepository;
     private final ApiKeySettingRepository apiKeySettingRepository;
     private final AesEncryptionService aesEncryptionService;
     private final BalanceService balanceService;
-    private final Map<ExchangerCode, com.khomishchak.ws.services.exchangers.ExchangerConnectorServiceFactory> exchangerServiceFactories;
+    private final Map<ExchangerCode, ExchangerConnectorServiceFactory> exchangerServiceFactories;
 
     public ExchangerServiceImpl(UserRepository userRepository, ApiKeySettingRepository apiKeySettingRepository,
                                 AesEncryptionService aesEncryptionService,
-                                List<com.khomishchak.ws.services.exchangers.ExchangerConnectorServiceFactory> exchangerServiceFactories,
+                                List<ExchangerConnectorServiceFactory> exchangerServiceFactories,
                                 BalanceService balanceService) {
         this.userRepository = userRepository;
         this.apiKeySettingRepository = apiKeySettingRepository;
         this.aesEncryptionService = aesEncryptionService;
         this.balanceService = balanceService;
         this.exchangerServiceFactories = exchangerServiceFactories.stream()
-                .collect(Collectors.toMap(com.khomishchak.ws.services.exchangers.ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
+                .collect(Collectors.toMap(ExchangerConnectorServiceFactory::getExchangerCode, factory -> factory));
     }
 
     @Override
@@ -72,7 +72,7 @@ public class ExchangerServiceImpl implements com.khomishchak.ws.services.exchang
     // TODO: should be moved to another service layer that will handle cache and synchronize implementations
     @Override
     public List<DepositWithdrawalTransaction> getWithdrawalDepositWalletHistory(long userId, ExchangerCode exchangerCode) {
-        com.khomishchak.ws.services.exchangers.ExchangerConnectorService exchangerConnectorService = getExchangerConnectorService(exchangerCode);
+        ExchangerConnectorService exchangerConnectorService = getExchangerConnectorService(exchangerCode);
         return exchangerConnectorService.getDepositWithdrawalHistory(userId);
     }
 

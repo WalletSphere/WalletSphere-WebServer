@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
-public abstract class CommonBalanceService implements com.khomishchak.ws.services.exchangers.balances.BalanceService {
+public abstract class CommonBalanceService implements BalanceService {
 
     private final BalanceRepository balanceRepository;
     private final UserService userService;
