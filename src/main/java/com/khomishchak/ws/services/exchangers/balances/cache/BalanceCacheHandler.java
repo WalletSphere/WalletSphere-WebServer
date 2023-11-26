@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BalanceCacheHandler {
 
-    AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService;
+    private final AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService;
 
     public BalanceCacheHandler(AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService) {
         this.accountBalanceTransferOperationsHistoryService = accountBalanceTransferOperationsHistoryService;

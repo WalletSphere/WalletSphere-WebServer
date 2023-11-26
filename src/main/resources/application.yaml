@@ -21,4 +21,4 @@ ws:
       operations:
         history:
           service:
-            type: "local"
+            type: "remote"

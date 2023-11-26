@@ -56,6 +56,7 @@ public abstract class CommonAccountBalanceTransferOperationsHistoryService imple
     @Override
     @CacheEvict(value = "depositWithdrawalTransactionHistoryCache", key = "#balanceId")
     public void deleteDepositWithdrawalTransactionsHistory(long balanceId) {
+        depositWithdrawalTransactionsHistoryRepository.deleteAllByBalance_Id(balanceId);
     }
 
     private ExchangerDepositWithdrawalTransactions getExchangerDepositWithdrawalTransactionsForSingleExchanger(ExchangerCode code, long userId) {

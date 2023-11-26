@@ -1,6 +1,7 @@
 package com.khomishchak.ws.services.integration.whitebit;
 
 import com.khomishchak.ws.adapters.ApiKeySettingRepositoryAdapter;
+import com.khomishchak.ws.exceptions.BalanceNotFoundException;
 import com.khomishchak.ws.model.exchanger.transaction.DepositWithdrawalTransaction;
 import com.khomishchak.ws.model.enums.ExchangerCode;
 import com.khomishchak.ws.model.exchanger.Balance;
@@ -117,9 +118,9 @@ public class WhiteBitServiceImpl implements WhiteBitService {
 
     private ExchangerDepositWithdrawalTransactions generateDepositWithdrawalHistoryResp(WhiteBitDepositWithdrawalHistoryResp response,
                                                                                         long userId) {
-
         List<DepositWithdrawalTransaction> transactions = responseMapper.mapWithdrawalDepositHistoryToTransactions(response);
-        Balance balance = balanceRepository.findByCodeAndUser_Id(CODE, userId).get();
+        Balance balance = balanceRepository.findByCodeAndUser_Id(CODE, userId)
+                .orElseThrow(() -> new BalanceNotFoundException(String.format("Balance for userId: %d and with code: %s was not found", userId, CODE)));
 
         ExchangerDepositWithdrawalTransactions exchangerTransactions = getExchangerDepositWithdrawalTransactions(balance);
         assigneeTransactionsToExchangerTransactionsEntity(transactions, exchangerTransactions);

@@ -10,4 +10,5 @@ public interface DepositWithdrawalTransactionsHistoryRepository extends JpaRepos
 
     List<ExchangerDepositWithdrawalTransactions> findAllByUserId(long userId);
     Optional<ExchangerDepositWithdrawalTransactions> findByBalance_Id(long balanceId);
+    void deleteAllByBalance_Id(long balanceId);
 }
