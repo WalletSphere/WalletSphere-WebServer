@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: "jdbc:postgresql://localhost:5432/crypto"
+    url: "jdbc:postgresql://localhost:5432/max"
     username: "postgres"
     password: "1111"
   jpa:
@@ -16,3 +16,9 @@ ws:
   balance:
     service:
       type: "local"
+  account:
+    balance:
+      operations:
+        history:
+          service:
+            type: "remote"
