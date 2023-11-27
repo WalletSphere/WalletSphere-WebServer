@@ -2,10 +2,7 @@ package com.khomishchak.ws.model.goals;
 
 import com.khomishchak.ws.model.TransactionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -14,6 +11,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 @Table(name = "crypto_goal_table_transactions")
 public class CryptoGoalTableTransaction {
 

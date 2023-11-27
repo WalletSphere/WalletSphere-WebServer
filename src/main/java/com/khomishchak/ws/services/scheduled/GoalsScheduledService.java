@@ -1,6 +1,6 @@
 package com.khomishchak.ws.services.scheduled;
 
-import com.khomishchak.ws.model.enums.GoalType;
+import com.khomishchak.ws.model.goals.GoalType;
 import com.khomishchak.ws.model.goals.SelfGoal;
 import com.khomishchak.ws.repositories.SelfGoalRepository;
 import com.khomishchak.ws.services.GoalsService;

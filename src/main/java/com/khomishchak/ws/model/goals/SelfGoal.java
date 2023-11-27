@@ -2,7 +2,6 @@ package com.khomishchak.ws.model.goals;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.khomishchak.ws.model.User;
-import com.khomishchak.ws.model.enums.GoalType;
 import jakarta.persistence.*;
 import lombok.*;
 

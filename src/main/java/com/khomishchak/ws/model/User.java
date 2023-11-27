@@ -47,7 +47,7 @@ public class User {
     private List<ApiKeySetting> apiKeysSettings;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Balance> balances;
+    private List<Balance> balances = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SelfGoal> selfGoals = new ArrayList<>();

@@ -1,6 +1,6 @@
 package com.khomishchak.ws.repositories;
 
-import com.khomishchak.ws.model.enums.GoalType;
+import com.khomishchak.ws.model.goals.GoalType;
 import com.khomishchak.ws.model.goals.SelfGoal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
