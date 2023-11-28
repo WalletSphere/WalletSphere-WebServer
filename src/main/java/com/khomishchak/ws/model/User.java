@@ -44,7 +44,7 @@ public class User {
     private CryptoGoalsTable cryptoGoalsTable;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ApiKeySetting> apiKeysSettings;
+    private List<ApiKeySetting> apiKeysSettings = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Balance> balances = new ArrayList<>();

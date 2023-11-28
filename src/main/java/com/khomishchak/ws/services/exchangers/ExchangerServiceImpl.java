@@ -10,9 +10,10 @@ import com.khomishchak.ws.model.exchanger.transaction.ExchangerDepositWithdrawal
 import com.khomishchak.ws.model.requests.RegisterApiKeysReq;
 import com.khomishchak.ws.model.requests.RegisterExchangerInfoReq;
 import com.khomishchak.ws.model.response.FirstlyGeneratedBalanceResp;
-import com.khomishchak.ws.model.response.SyncDataResp;
+import com.khomishchak.ws.model.response.SyncBalancesResp;
+import com.khomishchak.ws.model.response.SyncDepositWithdrawalTransactionsResp;
 import com.khomishchak.ws.repositories.ApiKeySettingRepository;
-import com.khomishchak.ws.repositories.UserRepository;
+import com.khomishchak.ws.services.UserService;
 import com.khomishchak.ws.services.exchangers.balances.BalanceService;
 import com.khomishchak.ws.services.exchangers.balances.history.AccountBalanceTransferOperationsHistoryService;
 import com.khomishchak.ws.services.security.encryption.AesEncryptionService;
@@ -24,16 +25,16 @@ import java.util.List;
 @Service
 public class ExchangerServiceImpl implements ExchangerService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final ApiKeySettingRepository apiKeySettingRepository;
     private final AesEncryptionService aesEncryptionService;
     private final BalanceService balanceService;
     private final AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService;
 
-    public ExchangerServiceImpl(UserRepository userRepository, ApiKeySettingRepository apiKeySettingRepository,
+    public ExchangerServiceImpl(UserService userService, ApiKeySettingRepository apiKeySettingRepository,
                                 AesEncryptionService aesEncryptionService, BalanceService balanceService,
                                 AccountBalanceTransferOperationsHistoryService accountBalanceTransferOperationsHistoryService) {
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.apiKeySettingRepository = apiKeySettingRepository;
         this.aesEncryptionService = aesEncryptionService;
         this.balanceService = balanceService;
@@ -43,7 +44,7 @@ public class ExchangerServiceImpl implements ExchangerService {
     @Override
     @Transactional
     public FirstlyGeneratedBalanceResp addGeneralExchangerInfo(RegisterExchangerInfoReq exchangerInfoReq, long userId) {
-        User user = userRepository.getReferenceById(userId);
+        User user = userService.getUserById(userId);
         RegisterApiKeysReq apiKeys = exchangerInfoReq.apiKeysReq();
         ExchangerCode code = exchangerInfoReq.code();
 
@@ -70,14 +71,14 @@ public class ExchangerServiceImpl implements ExchangerService {
     }
 
     @Override
-    public SyncDataResp synchronizeBalanceDataForUser(long userId) {
-        List<Balance> balances = balanceService.synchronizeBalances(userId);
-        return new SyncDataResp(balances);
+    public SyncBalancesResp synchronizeBalanceDataForUser(long userId) {
+        return new SyncBalancesResp(balanceService.synchronizeBalances(userId));
     }
 
     @Override
-    public List<ExchangerDepositWithdrawalTransactions> synchronizeDepositWithdrawalTransactionsData(long userId) {
-        return accountBalanceTransferOperationsHistoryService.synchronizeDepositWithdrawalTransactionsHistory(userId);
+    public SyncDepositWithdrawalTransactionsResp synchronizeDepositWithdrawalTransactionsData(long userId) {
+        return new SyncDepositWithdrawalTransactionsResp(
+                accountBalanceTransferOperationsHistoryService.synchronizeDepositWithdrawalTransactionsHistory(userId));
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.khomishchak.ws.model.exchanger;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.khomishchak.ws.model.User;
 import com.khomishchak.ws.model.enums.ExchangerCode;
@@ -25,6 +24,10 @@ public class ApiKeySetting {
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JsonIgnore
     private User user;
+
+    @OneToOne
+    @JoinColumn(name = "balance_id")
+    private Balance balance;
 
     @Enumerated(value = EnumType.STRING)
     private ExchangerCode code;

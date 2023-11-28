@@ -38,6 +38,10 @@ public class Balance {
     @JsonIgnore
     private ExchangerDepositWithdrawalTransactions depositWithdrawalTransactions;
 
+    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private ApiKeySetting apiKeySetting;
+
     @ElementCollection
     private List<Currency> currencies;
 
