@@ -9,7 +9,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -44,14 +43,14 @@ public class User {
     private CryptoGoalsTable cryptoGoalsTable;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ApiKeySetting> apiKeysSettings = new ArrayList<>();
+    private List<ApiKeySetting> apiKeysSettings;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Balance> balances = new ArrayList<>();
+    private List<Balance> balances;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SelfGoal> selfGoals = new ArrayList<>();
+    private List<SelfGoal> selfGoals;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Feedback> feedbacks = new ArrayList<>();
+    private List<Feedback> feedbacks;
 }

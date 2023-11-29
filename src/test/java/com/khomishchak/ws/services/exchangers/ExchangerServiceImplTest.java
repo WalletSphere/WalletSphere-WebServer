@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -60,6 +61,8 @@ class ExchangerServiceImplTest {
     @Test
     void shouldCreateGeneralExchangerInfo() {
         // given
+        testUser.setApiKeysSettings(new ArrayList<>());
+
         String balanceName = "balanceName";
         String publicKey = "publicKey";
         String secretKey = "secretKey";
