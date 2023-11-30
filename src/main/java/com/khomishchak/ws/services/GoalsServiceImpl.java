@@ -6,7 +6,13 @@ import com.khomishchak.ws.model.TransferTransactionType;
 import com.khomishchak.ws.model.User;
 import com.khomishchak.ws.model.exchanger.transaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.ws.model.exchanger.transaction.Transaction;
-import com.khomishchak.ws.model.goals.*;
+import com.khomishchak.ws.model.goals.CommonGoalType;
+import com.khomishchak.ws.model.goals.CryptoGoalTableTransaction;
+import com.khomishchak.ws.model.goals.CryptoGoalsTable;
+import com.khomishchak.ws.model.goals.CryptoGoalsTableRecord;
+import com.khomishchak.ws.model.goals.GoalType;
+import com.khomishchak.ws.model.goals.SelfGoal;
+import com.khomishchak.ws.model.goals.TransactionChangeStateDTO;
 import com.khomishchak.ws.repositories.CryptoGoalsTableRepository;
 import com.khomishchak.ws.repositories.SelfGoalRepository;
 import com.khomishchak.ws.services.exchangers.ExchangerService;
@@ -161,7 +167,6 @@ public class GoalsServiceImpl implements GoalsService {
         return goals;
     }
 
-    // TODO: should be replaced with strategy pattern to handle multiple goal types, not only deposit
     @Override
     public boolean overdueGoalIsAchieved(SelfGoal goal) {
         return selfGoalValidators.get(goal.getGoalType().getCommonType()).isAchieved(goal);
