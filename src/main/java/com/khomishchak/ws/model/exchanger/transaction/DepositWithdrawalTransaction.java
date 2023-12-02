@@ -3,8 +3,14 @@ package com.khomishchak.ws.model.exchanger.transaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.khomishchak.ws.model.TransferTransactionType;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +22,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@EqualsAndHashCode
 @Table(name = "deposit_withdrawal_transactions")
 public class DepositWithdrawalTransaction extends Transaction {
 

@@ -2,7 +2,11 @@ package com.khomishchak.ws.model.goals;
 
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
