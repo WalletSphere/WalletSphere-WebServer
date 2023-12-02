@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.security.InvalidParameterException;
 import java.security.Key;
 import java.util.Map;
 import java.util.Optional;
@@ -62,17 +63,13 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(Map<String, String> extraClaims, UserDetails userDetails, DeviceType deviceType) {
-        if(!(userDetails instanceof UserDetailsImpl)) {
-            throw new IllegalArgumentException("Expected type was UserDetailsImpl");
-        }
+        UserDetailsImpl userDetailsImpl = getUserDetailsImpl(userDetails);
 
         Long expiryTime = deviceType.equals(DeviceType.WEB) ? jwtWebExpirationTimeInMinutes : jwtAppExpirationTimeInMinutes;
 
-        UserDetailsImpl userDetailsimpl = (UserDetailsImpl) userDetails;
-
         JwtClaims jwtClaims = new JwtClaims();
         jwtClaims.setSubject(userDetails.getUsername());
-        jwtClaims.setClaim("userId", userDetailsimpl.getUserId());
+        jwtClaims.setClaim("userId", userDetailsImpl.getUserId());
         jwtClaims.setIssuedAtToNow();
         jwtClaims.setExpirationTimeMinutesInTheFuture(expiryTime);
 
@@ -86,6 +83,23 @@ public class JwtServiceImpl implements JwtService {
         } catch (JoseException e) {
             throw new RuntimeException("Error generating JWT", e);
         }
+    }
+
+    private UserDetailsImpl getUserDetailsImpl(UserDetails userDetails) {
+        if(!(userDetails instanceof UserDetailsImpl)) {
+            throw new IllegalArgumentException("Expected type was UserDetailsImpl");
+        }
+
+        UserDetailsImpl userDetailsimpl = (UserDetailsImpl) userDetails;
+
+        String username = userDetailsimpl.getUsername();
+        Long userId = userDetailsimpl.getUserId();
+
+        if(username == null || username.isBlank() || userId == null) {
+            throw new InvalidParameterException("username or userId is empty, can not generate jwt token");
+        }
+
+        return userDetailsimpl;
     }
 
     @Override
