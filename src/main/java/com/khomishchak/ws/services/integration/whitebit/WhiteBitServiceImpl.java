@@ -162,7 +162,6 @@ public class WhiteBitServiceImpl implements WhiteBitService {
 
     private void assigneeTransactionsToExchangerTransactionsEntity(List<DepositWithdrawalTransaction> transactions,
                                                                    ExchangerDepositWithdrawalTransactions exchangerTransactions) {
-
         transactions.forEach(transaction -> transaction.setExchangerDepositWithdrawalTransactions(exchangerTransactions));
         exchangerTransactions.setTransactions(transactions);
     }
@@ -206,7 +205,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
                     if (statusCode >= 400 && statusCode < 500) {
                         return Mono.error(new WhiteBitClientException(String.format("%s: %s", WHITE_BIT_CLIENT_ERROR_MESSAGE, errorMessage), statusCode));
                     } else {
-                        return Mono.error(new WhiteBitServerException(errorMessage));
+                        return resp.createException().flatMap(Mono::error);
                     }
                 });
     }

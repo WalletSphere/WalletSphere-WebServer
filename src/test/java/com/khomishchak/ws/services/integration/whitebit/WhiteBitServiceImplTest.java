@@ -11,6 +11,8 @@ import com.khomishchak.ws.model.exchanger.transaction.DepositWithdrawalTransacti
 import com.khomishchak.ws.model.exchanger.transaction.ExchangerDepositWithdrawalTransactions;
 import com.khomishchak.ws.repositories.BalanceRepository;
 import com.khomishchak.ws.repositories.DepositWithdrawalTransactionsHistoryRepository;
+import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitClientException;
+import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitServerException;
 import com.khomishchak.ws.services.integration.whitebit.mappers.WhiteBitResponseMapper;
 import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitBalanceResp;
 import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitDepositWithdrawalHistoryResp;
@@ -18,6 +20,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +28,8 @@ import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
@@ -37,8 +42,8 @@ class WhiteBitServiceImplTest {
 
     private static final long USER_ID = 1L;
     private static final long BALANCE_ID = 2L;
-    private static final int RETRY_MAX_ATTEMPTS = 2;
-    private static final int RETRY_MIN_BACKOFF_SECONDS = 2;
+    private static final int RETRY_MAX_ATTEMPTS = 1;
+    private static final int RETRY_MIN_BACKOFF_SECONDS = 1;
     private static final String PRIVATE_KEY = "privateKey";
     private static final String PUBLIC_KEY = "publicKey";
 
@@ -70,8 +75,8 @@ class WhiteBitServiceImplTest {
         whiteBitService = new WhiteBitServiceImpl(balanceRepository, webClient, apiKeySettingRepositoryAdapter,
                 RETRY_MAX_ATTEMPTS, RETRY_MIN_BACKOFF_SECONDS, responseMapper, depositWithdrawalTransactionsHistoryRepository);
         whiteBitService.setBaseUrl(mockWebServer.url("/").url().toString());
-        whiteBitService.setGetMainBalanceDepositWithdrawalHistoryUrl(mockWebServer.url("/transactions").url().toString());
-        whiteBitService.setGetMainBalanceUrl(mockWebServer.url("/main-balance").url().toString());
+        whiteBitService.setGetMainBalanceDepositWithdrawalHistoryUrl("/transactions");
+        whiteBitService.setGetMainBalanceUrl("/main-balance");
     }
 
     @Test
@@ -143,37 +148,68 @@ class WhiteBitServiceImplTest {
         assertThat(result.getUserId()).isEqualTo(USER_ID);
     }
 
-//    @Test
-//    public void shouldThrowServerException_whenJourneyIdResponseCodeIs500_fromLocalEndpoint() {
-//        // Given
-//
-//        List<DecryptedApiKeySettingDTO> decryptedKeysPair = List.of(DecryptedApiKeySettingDTO.builder()
-//                .publicKey(PUBLIC_KEY).privateKey(PRIVATE_KEY).code(ExchangerCode.WHITE_BIT).build());
-//
-//        when(apiKeySettingRepositoryAdapter.findAllByUserId(USER_ID)).thenReturn(decryptedKeysPair);
-//
-//        // Prepare the MockResponse
-//        String errorMessage = "Failed to get response from WhiteBit, server error";
-//
-//        final MockResponse serverErrorMockResponse = new MockResponse()
-//                .setResponseCode(500)
-//                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-//                .setBody(errorMessage);
-//
-//        mockWebServer.enqueue(serverErrorMockResponse);
-//        // Preparing two responses because we expect a retry
-//        mockWebServer.enqueue(serverErrorMockResponse);
-//
-//        // When
-//        Exception exception = assertThrows(WhiteBitServerException.class, () -> {
-//            whiteBitService.getAccountBalance(USER_ID);
-//        });
-//
-//        // Then
-//        // Verifying we retried
-//        Assertions.assertThat(mockWebServer.getRequestCount()).isEqualTo(2);
-//        Assertions.assertThat(exception.getMessage()).isEqualTo(errorMessage);
-//    }
+    @Test
+    public void shouldThrowServerException_whenWhiteBitRespCodeIs500_fromLocalEndpoint() {
+        // Given
+
+        List<DecryptedApiKeySettingDTO> decryptedKeysPair = List.of(DecryptedApiKeySettingDTO.builder()
+                .publicKey(PUBLIC_KEY).privateKey(PRIVATE_KEY).code(ExchangerCode.WHITE_BIT).build());
+
+        when(apiKeySettingRepositoryAdapter.findAllByUserId(USER_ID)).thenReturn(decryptedKeysPair);
+
+        // Prepare the MockResponse
+        String errorMessage = "Failed to get response from WhiteBit, server error";
+
+        final MockResponse serverErrorMockResponse = new MockResponse()
+                .setResponseCode(500)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody(errorMessage);
+
+        mockWebServer.enqueue(serverErrorMockResponse);
+        // Preparing two responses because we expect a retry
+        mockWebServer.enqueue(serverErrorMockResponse);
+
+        // When
+        Exception exception = assertThrows(WhiteBitServerException.class, () -> {
+            whiteBitService.getAccountBalance(USER_ID);
+        });
+
+        // Then
+        // Verifying we retried
+        assertThat(mockWebServer.getRequestCount()).isEqualTo(2);
+        assertThat(exception.getMessage()).isEqualTo(errorMessage);
+    }
+
+    @Test
+    public void shouldThrowServerException_whenWhiteBitRespCodeIs400_fromLocalEndpoint() {
+        // Given
+
+        List<DecryptedApiKeySettingDTO> decryptedKeysPair = List.of(DecryptedApiKeySettingDTO.builder()
+                .publicKey(PUBLIC_KEY).privateKey(PRIVATE_KEY).code(ExchangerCode.WHITE_BIT).build());
+
+        when(apiKeySettingRepositoryAdapter.findAllByUserId(USER_ID)).thenReturn(decryptedKeysPair);
+
+        // Prepare the MockResponse
+        String errorMessagePrefix = "Failed to get response from WhiteBit, client error";
+        String errorMessage = "errorMessage";
+
+        final MockResponse serverErrorMockResponse = new MockResponse()
+                .setResponseCode(400)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody(errorMessage);
+
+        mockWebServer.enqueue(serverErrorMockResponse);
+
+        // When
+        Exception exception = assertThrows(WhiteBitClientException.class, () -> {
+            whiteBitService.getAccountBalance(USER_ID);
+        });
+
+        // Then
+        // Verifying we retried
+        assertThat(mockWebServer.getRequestCount()).isEqualTo(1);
+        assertThat(exception.getMessage()).isEqualTo(String.format("%s: %s", errorMessagePrefix, errorMessage));
+    }
 
     @AfterEach
     void tearDown() throws IOException {
