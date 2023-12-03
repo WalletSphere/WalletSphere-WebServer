@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.security.InvalidParameterException;
 import java.security.Key;
@@ -95,7 +96,7 @@ public class JwtServiceImpl implements JwtService {
         String username = userDetailsimpl.getUsername();
         Long userId = userDetailsimpl.getUserId();
 
-        if(username == null || username.isBlank() || userId == null) {
+        if(!StringUtils.hasText(username) || userId == null) {
             throw new InvalidParameterException("username or userId is empty, can not generate jwt token");
         }
 

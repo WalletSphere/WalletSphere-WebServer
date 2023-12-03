@@ -22,6 +22,10 @@ import java.util.List;
 class ApiKeySettingRepositoryAdapterTest {
 
     private static final long USER_ID = 1L;
+    private static final String ENCRYPTED_PUB_KEY = "encryptedPubKey";
+    private static final String DECRYPTED_PUB_KEY = "decryptedPubKey";
+    private static final String ENCRYPTED_PRI_KEY = "encryptedPriKey";
+    private static final String DECRYPTED_PRI_KEY = "decryptedPriKey";
 
     @Mock
     private ApiKeySettingRepository apiKeySettingRepository;
@@ -43,7 +47,7 @@ class ApiKeySettingRepositoryAdapterTest {
     @Test
     void shouldReturnDecryptedKeysByUserId() {
         // given
-        ApiKeysPair encryptedApiKeysPair = new ApiKeysPair("encryptedPubKey", "encryptedPriKey");
+        ApiKeysPair encryptedApiKeysPair = new ApiKeysPair(ENCRYPTED_PUB_KEY, ENCRYPTED_PRI_KEY);
         ApiKeySetting encryptedApiKeySetting = ApiKeySetting.builder()
                 .user(testUser)
                 .code(ExchangerCode.WHITE_BIT)
@@ -51,8 +55,8 @@ class ApiKeySettingRepositoryAdapterTest {
                 .build();
 
         when(apiKeySettingRepository.findAllByUserId(eq(USER_ID))).thenReturn(List.of(encryptedApiKeySetting));
-        when(aesEncryptionService.decrypt(eq("encryptedPubKey"))).thenReturn("decryptedPubKey");
-        when(aesEncryptionService.decrypt(eq("encryptedPriKey"))).thenReturn("decryptedPriKey");
+        when(aesEncryptionService.decrypt(eq(ENCRYPTED_PUB_KEY))).thenReturn(DECRYPTED_PUB_KEY);
+        when(aesEncryptionService.decrypt(eq(ENCRYPTED_PRI_KEY))).thenReturn(DECRYPTED_PRI_KEY);
 
         // when
         List<DecryptedApiKeySettingDTO> result = apiKeySettingRepositoryAdapter.findAllByUserId(USER_ID);
@@ -61,7 +65,7 @@ class ApiKeySettingRepositoryAdapterTest {
         assertThat(result.size()).isEqualTo(1);
 
         DecryptedApiKeySettingDTO resultEntity = result.get(0);
-        assertThat(resultEntity.getPublicKey()).isEqualTo("decryptedPubKey");
-        assertThat(resultEntity.getPrivateKey()).isEqualTo("decryptedPriKey");
+        assertThat(resultEntity.getPublicKey()).isEqualTo(DECRYPTED_PUB_KEY);
+        assertThat(resultEntity.getPrivateKey()).isEqualTo(DECRYPTED_PRI_KEY);
     }
 }

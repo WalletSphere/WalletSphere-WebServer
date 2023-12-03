@@ -6,6 +6,8 @@ import com.khomishchak.ws.model.requests.LoginRequest;
 import com.khomishchak.ws.model.requests.RegistrationRequest;
 import com.khomishchak.ws.model.response.LoginResult;
 import com.khomishchak.ws.model.response.RegistrationResult;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,12 +21,17 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AuthControllerTest {
+
+    private static final String TEST_USERNAME = "testUsername";
+    private static final String TEST_EMAIL = "testEmail@gmail.com";
+    private static final String TEST_PASSWORD = "testPassword";
+
+    private static final String WRONG_USERNAME = "wrongUsername";
+    private static final String WRONG_PASSWORD = "wrongPassword";
+
 
     @Container
     @ServiceConnection
@@ -36,8 +43,8 @@ class AuthControllerTest {
     @Test
     void shouldRegisterAccount() {
         // given
-        RegistrationRequest registrationRequest = new RegistrationRequest("testU", "testP",
-                "testE@gmail.com", true, DeviceType.WEB);
+        RegistrationRequest registrationRequest = new RegistrationRequest(TEST_USERNAME, TEST_PASSWORD,
+                TEST_EMAIL, true, DeviceType.WEB);
 
         // when
         ResponseEntity<RegistrationResult> result = restTemplate.exchange("/api/v1/auth/register", HttpMethod.POST,
@@ -50,8 +57,8 @@ class AuthControllerTest {
         assertAll("Registration result validation",
                 () -> assertThat(actualResult).isNotNull(),
                 () -> assertThat(actualResult.jwt()).isNotBlank(),
-                () -> assertThat(actualResult.email()).isEqualTo("testE@gmail.com"),
-                () -> assertThat(actualResult.username()).isEqualTo("testU"),
+                () -> assertThat(actualResult.email()).isEqualTo(TEST_EMAIL),
+                () -> assertThat(actualResult.username()).isEqualTo(TEST_USERNAME),
                 () -> assertThat(actualResult.userRole()).isEqualTo(UserRole.USER)
         );
     }
@@ -59,7 +66,7 @@ class AuthControllerTest {
     @Test
     void shouldLoginAccount_whenAccountDoExists() {
         // given
-        LoginRequest loginRequest = new LoginRequest("testU", "testP", DeviceType.WEB);
+        LoginRequest loginRequest = new LoginRequest(TEST_USERNAME, TEST_PASSWORD, DeviceType.WEB);
 
         // when
         ResponseEntity<LoginResult> result = restTemplate.exchange("/api/v1/auth/login", HttpMethod.POST,
@@ -72,14 +79,14 @@ class AuthControllerTest {
         assertAll("Login result validation",
                 () -> assertThat(actualResult).isNotNull(),
                 () -> assertThat(actualResult.jwt()).isNotBlank(),
-                () -> assertThat(actualResult.username()).isEqualTo("testU")
+                () -> assertThat(actualResult.username()).isEqualTo(TEST_USERNAME)
         );
     }
 
     @Test
     void shouldLoginAccount_whenAccountDoNotExists() {
         // given
-        LoginRequest loginRequest = new LoginRequest("wrongU", "wrongP", DeviceType.WEB);
+        LoginRequest loginRequest = new LoginRequest(WRONG_USERNAME, WRONG_PASSWORD, DeviceType.WEB);
 
         // when
         ResponseEntity<LoginResult> result = restTemplate.exchange("/api/v1/auth/login", HttpMethod.POST,
