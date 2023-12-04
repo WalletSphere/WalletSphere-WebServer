@@ -1,47 +1,39 @@
 package com.khomishchak.ws.services.integration.whitebit;
 
 import com.khomishchak.ws.adapters.ApiKeySettingRepositoryAdapter;
-import com.khomishchak.ws.model.TransferTransactionType;
-import com.khomishchak.ws.model.User;
 import com.khomishchak.ws.model.enums.ExchangerCode;
-import com.khomishchak.ws.model.exchanger.Balance;
-import com.khomishchak.ws.model.exchanger.Currency;
 import com.khomishchak.ws.model.exchanger.DecryptedApiKeySettingDTO;
-import com.khomishchak.ws.model.exchanger.transaction.DepositWithdrawalTransaction;
-import com.khomishchak.ws.model.exchanger.transaction.ExchangerDepositWithdrawalTransactions;
-import com.khomishchak.ws.repositories.BalanceRepository;
-import com.khomishchak.ws.repositories.DepositWithdrawalTransactionsHistoryRepository;
 import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitClientException;
-import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitServerException;
-import com.khomishchak.ws.services.integration.whitebit.mappers.WhiteBitResponseMapper;
-import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitBalanceResp;
+import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitServerException;import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitBalanceResp;
 import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitDepositWithdrawalHistoryResp;
+
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.assertj.core.api.Assertions;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class WhiteBitServiceImplTest {
 
     private static final long USER_ID = 1L;
-    private static final long BALANCE_ID = 2L;
     private static final int RETRY_MAX_ATTEMPTS = 1;
     private static final int RETRY_MIN_BACKOFF_SECONDS = 1;
     private static final String PRIVATE_KEY = "privateKey";
@@ -53,27 +45,18 @@ class WhiteBitServiceImplTest {
 
     @Mock
     private ApiKeySettingRepositoryAdapter apiKeySettingRepositoryAdapter;
-    @Mock
-    private BalanceRepository balanceRepository;
-    @Mock
-    private WhiteBitResponseMapper responseMapper;
-    @Mock
-    private DepositWithdrawalTransactionsHistoryRepository depositWithdrawalTransactionsHistoryRepository;
 
     private WhiteBitServiceImpl whiteBitService;
 
-    private User testUser;
-
     @BeforeEach
     void setUp() throws IOException {
-        testUser = User.builder().id(USER_ID).build();
         mockWebServer = new MockWebServer();
         mockWebServer.start();
 
         webClient = WebClient.builder().build();
 
-        whiteBitService = new WhiteBitServiceImpl(balanceRepository, webClient, apiKeySettingRepositoryAdapter,
-                RETRY_MAX_ATTEMPTS, RETRY_MIN_BACKOFF_SECONDS, responseMapper, depositWithdrawalTransactionsHistoryRepository);
+        whiteBitService = new WhiteBitServiceImpl(webClient, apiKeySettingRepositoryAdapter, RETRY_MAX_ATTEMPTS,
+                RETRY_MIN_BACKOFF_SECONDS);
         whiteBitService.setBaseUrl(mockWebServer.url("/").url().toString());
         whiteBitService.setGetMainBalanceDepositWithdrawalHistoryUrl("/transactions");
         whiteBitService.setGetMainBalanceUrl("/main-balance");
@@ -82,19 +65,14 @@ class WhiteBitServiceImplTest {
     @Test
     void shouldReturnMainBalance() {
         // given
-        Currency bsv = new Currency("BSV", 1.3);
-        Currency btc = new Currency("BTC", 22.11);
-        Currency xlm = new Currency("XLM", 36.48);
-        List<Currency> currencies = List.of(bsv, btc, xlm);
-
         List<DecryptedApiKeySettingDTO> decryptedKeysPair = List.of(DecryptedApiKeySettingDTO.builder()
                         .publicKey(PUBLIC_KEY).privateKey(PRIVATE_KEY).code(ExchangerCode.WHITE_BIT).build());
 
-        Balance balance = Balance.builder().id(BALANCE_ID).build();
+        Map<String, String> expectedCurrencies = new HashMap<>();
+        expectedCurrencies.put("BSV", "1.3"); expectedCurrencies.put("BTC", "22.11"); expectedCurrencies.put("BTG", "0");
+        expectedCurrencies.put("BTT", "0"); expectedCurrencies.put("XLM", "36.48");
 
         when(apiKeySettingRepositoryAdapter.findAllByUserId(USER_ID)).thenReturn(decryptedKeysPair);
-        when(responseMapper.mapToCurrencies(any(WhiteBitBalanceResp.class))).thenReturn(currencies);
-        when(balanceRepository.findByCodeAndUser_Id(ExchangerCode.WHITE_BIT, USER_ID)).thenReturn(Optional.of(balance));
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -102,11 +80,16 @@ class WhiteBitServiceImplTest {
                 .addHeader("Content-Type", "application/json"));
 
         // when
-        Balance result = whiteBitService.getAccountBalance(USER_ID);
+        Mono<WhiteBitBalanceResp> resultMono = whiteBitService.getAccountBalance(USER_ID);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getCurrencies()).isEqualTo(currencies);
+        StepVerifier.create(resultMono)
+                .assertNext(result -> {
+                    Assertions.assertThat(result).isNotNull();
+                    Assertions.assertThat(result.getCurrencies()).isEqualTo(expectedCurrencies);
+                })
+                .expectComplete()
+                .verify();
     }
 
     @Test
@@ -115,22 +98,12 @@ class WhiteBitServiceImplTest {
         List<DecryptedApiKeySettingDTO> decryptedApiKeySetting = List.of(DecryptedApiKeySettingDTO.builder()
                 .publicKey(PUBLIC_KEY).privateKey(PRIVATE_KEY).code(ExchangerCode.WHITE_BIT).build());
 
-        List<DepositWithdrawalTransaction> transactions = List.of(
-                DepositWithdrawalTransaction.depositWithdrawalTransactionBuilder()
-                .transactionId("5e112b38-9652-11ed-a1eb-0242ac120002")
-                .transactionHash("a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886")
-                .amount(BigDecimal.valueOf(0.0006))
-                .ticker("BTC")
-                .transferTransactionType(TransferTransactionType.DEPOSIT)
-                .build());
-
-        Balance balance = Balance.builder().id(BALANCE_ID).user(testUser).build();
+        List<WhiteBitDepositWithdrawalHistoryResp.Record> expectedRecords = List.of(new WhiteBitDepositWithdrawalHistoryResp.Record(
+                "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE", 1593437922L, "BTC", 1, 0.0006,
+                15, "5e112b38-9652-11ed-a1eb-0242ac120002",
+                "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886"));
 
         when(apiKeySettingRepositoryAdapter.findAllByUserId(USER_ID)).thenReturn(decryptedApiKeySetting);
-        when(responseMapper.mapWithdrawalDepositHistoryToTransactions(any(WhiteBitDepositWithdrawalHistoryResp.class)))
-                .thenReturn(transactions);
-        when(balanceRepository.findByCodeAndUser_Id(ExchangerCode.WHITE_BIT, USER_ID))
-                .thenReturn(Optional.of(balance));
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -138,14 +111,16 @@ class WhiteBitServiceImplTest {
                 .addHeader("Content-Type", "application/json"));
 
         // when
-        ExchangerDepositWithdrawalTransactions result = whiteBitService.getDepositWithdrawalHistory(USER_ID);
+        Mono<WhiteBitDepositWithdrawalHistoryResp> resultMono = whiteBitService.getDepositWithdrawalHistory(USER_ID);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getTransactions()).isEqualTo(transactions);
-        assertThat(result.getBalanceId()).isEqualTo(BALANCE_ID);
-        assertThat(result.getCode()).isEqualTo(ExchangerCode.WHITE_BIT);
-        assertThat(result.getUserId()).isEqualTo(USER_ID);
+        StepVerifier.create(resultMono)
+                .assertNext(result -> {
+                    Assertions.assertThat(result).isNotNull();
+                    Assertions.assertThat(result.getRecords()).isEqualTo(expectedRecords);
+                })
+                .expectComplete()
+                .verify();
     }
 
     @Test
@@ -171,7 +146,7 @@ class WhiteBitServiceImplTest {
 
         // When
         Exception exception = assertThrows(WhiteBitServerException.class, () -> {
-            whiteBitService.getAccountBalance(USER_ID);
+            whiteBitService.getAccountBalance(USER_ID).block();
         });
 
         // Then
@@ -202,7 +177,7 @@ class WhiteBitServiceImplTest {
 
         // When
         Exception exception = assertThrows(WhiteBitClientException.class, () -> {
-            whiteBitService.getAccountBalance(USER_ID);
+            whiteBitService.getAccountBalance(USER_ID).block();
         });
 
         // Then
@@ -215,6 +190,8 @@ class WhiteBitServiceImplTest {
     void tearDown() throws IOException {
         mockWebServer.shutdown();
     }
+
+
 
     private String getBalanceRespJson() {
          return """
