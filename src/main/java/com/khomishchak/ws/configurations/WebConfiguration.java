@@ -39,11 +39,6 @@ public class WebConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public ServerCodecConfigurer serverCodecConfigurer() {
-        return ServerCodecConfigurer.create();
-    }
-
-    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
