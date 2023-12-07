@@ -5,8 +5,10 @@ import com.khomishchak.ws.model.enums.ExchangerCode;
 import com.khomishchak.ws.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitClientException;
 import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitServerException;
+import com.khomishchak.ws.services.integration.whitebit.mappers.WhiteBitErrorResponseMapper;
 import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitBalanceResp;
 import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitDepositWithdrawalHistoryResp;
+import com.khomishchak.ws.services.integration.whitebit.model.WhiteBitV4ErrorResp;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
@@ -27,6 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Formatter;
 import java.util.List;
@@ -40,16 +43,15 @@ public class WhiteBitServiceImpl implements WhiteBitService {
     private String getMainBalanceDepositWithdrawalHistoryUrl;
 
     private static final String WHITE_BIT_SERVER_ERROR_MESSAGE = "Failed to get response from WhiteBit, server error";
-    private static final String WHITE_BIT_CLIENT_ERROR_MESSAGE = "Failed to get response from WhiteBit, client error";
-
     private static final ExchangerCode CODE = ExchangerCode.WHITE_BIT;
-
+    private final WhiteBitErrorResponseMapper errorResponseMapper;
     private final ApiKeySettingRepositoryAdapter apiKeySettingRepositoryAdapter;
     private final WebClient webClient;
     private final int retryMaxAttempts;
     private final Duration retryMinBackoff;
 
     public WhiteBitServiceImpl(@Qualifier("WhiteBitApiWebClient") WebClient webClient,
+                               WhiteBitErrorResponseMapper errorResponseMapper,
                                ApiKeySettingRepositoryAdapter apiKeySettingRepositoryAdapter,
             @Value("${ws.integration.exchanger.api.retry.maxAttempts:2}") int retryMaxAttempts,
             @Value("${ws.integration.exchanger.api.retry.minBackoffSeconds:2}") int retryMinBackoffSeconds) {
@@ -57,6 +59,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
         this.webClient = webClient;
         this.retryMaxAttempts = retryMaxAttempts;
         this.retryMinBackoff = Duration.ofSeconds(retryMinBackoffSeconds);
+        this.errorResponseMapper = errorResponseMapper;
     }
 
     @Value("${ws.integration.exchanger.white-bit.base-url}")
@@ -133,9 +136,10 @@ public class WhiteBitServiceImpl implements WhiteBitService {
 
     private <T> Mono<T> handleErrorResponse(ClientResponse resp, int statusCode) {
         return resp.bodyToMono(String.class)
-                .flatMap(errorMessage -> {
+                .map(errorMessage -> errorResponseMapper.mapPlainTextErrorToObj(errorMessage, WhiteBitV4ErrorResp.class))
+                .flatMap(errorMessageResp -> {
                     if (statusCode >= 400 && statusCode < 500) {
-                        return Mono.error(new WhiteBitClientException(String.format("%s: %s", WHITE_BIT_CLIENT_ERROR_MESSAGE, errorMessage), statusCode));
+                        return getErrorResp(errorMessageResp, statusCode);
                     } else {
                         return resp.createException().flatMap(Mono::error);
                     }
@@ -153,6 +157,11 @@ public class WhiteBitServiceImpl implements WhiteBitService {
                         () -> new IllegalArgumentException(String.format("API Keys with for code: %s not present", CODE)));
     }
 
+    private <T> Mono<T> getErrorResp(WhiteBitV4ErrorResp resp, int statusCode) {
+        List<String> errors = resp.getErrors() != null ? resp.getErrors().getMessages() : new ArrayList<>();
+        return Mono.error(new WhiteBitClientException(resp.getCode(),
+                resp.getErrorMessage(), errors, statusCode));
+    }
 
     private String calculateSignature(String payload, DecryptedApiKeySettingDTO keysPair) {
         try {

@@ -1,5 +1,6 @@
 package com.khomishchak.ws.services.integration.whitebit.configs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -34,10 +35,16 @@ public class WhiteBitWebConfig {
 
     @Qualifier("WhiteBitApiWebClient")
     @Bean
-    WebClient idScanApiShortTimeoutWebClient(WebClient.Builder webClientBuilder,
+    WebClient WhiteBitApiShortTimeoutWebClient(WebClient.Builder webClientBuilder,
             @Qualifier("WhiteBitApiHttpClient") HttpClient idScanApiHttpClient) {
         return webClientBuilder
                 .clientConnector(new ReactorClientHttpConnector(idScanApiHttpClient))
                 .build();
+    }
+
+    @Qualifier("WhiteBitObjectMapper")
+    @Bean
+    ObjectMapper WhiteBitObjectMapper() {
+        return new ObjectMapper();
     }
 }

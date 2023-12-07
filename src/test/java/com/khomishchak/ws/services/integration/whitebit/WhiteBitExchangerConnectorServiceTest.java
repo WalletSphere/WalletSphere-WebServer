@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -70,7 +69,6 @@ class WhiteBitExchangerConnectorServiceTest {
                         .build();
 
         when(whiteBitService.getAccountBalance(USER_ID)).thenReturn(buildBalanceResponseMono());
-        // TODO: use eq()
         when(responseMapper.mapToCurrencies(any(WhiteBitBalanceResp.class))).thenReturn(currencies);
         when(balanceRepository.findByCodeAndUser_Id(ExchangerCode.WHITE_BIT, USER_ID))
                 .thenReturn(Optional.of(mainBalance));
