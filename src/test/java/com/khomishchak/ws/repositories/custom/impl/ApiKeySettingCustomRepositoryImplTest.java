@@ -1,4 +1,4 @@
-package com.khomishchak.ws.adapters;
+package com.khomishchak.ws.repositories.custom.impl;
 
 import com.khomishchak.ws.model.User;
 import com.khomishchak.ws.model.enums.ExchangerCode;
@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
-class ApiKeySettingRepositoryAdapterTest {
+class ApiKeySettingCustomRepositoryImplTest {
 
     private static final long USER_ID = 1L;
     private static final String ENCRYPTED_PUB_KEY = "encryptedPubKey";
@@ -32,7 +32,7 @@ class ApiKeySettingRepositoryAdapterTest {
     @Mock
     private AesEncryptionService aesEncryptionService;
 
-    private ApiKeySettingRepositoryAdapter apiKeySettingRepositoryAdapter;
+    private ApiKeySettingCustomRepositoryImpl apiKeySettingCustomRepository;
 
     private User testUser;
 
@@ -41,7 +41,7 @@ class ApiKeySettingRepositoryAdapterTest {
         testUser = User.builder()
                 .id(USER_ID)
                 .build();
-        apiKeySettingRepositoryAdapter = new ApiKeySettingRepositoryAdapter(apiKeySettingRepository, aesEncryptionService);
+        apiKeySettingCustomRepository = new ApiKeySettingCustomRepositoryImpl(apiKeySettingRepository, aesEncryptionService);
     }
 
     @Test
@@ -59,7 +59,7 @@ class ApiKeySettingRepositoryAdapterTest {
         when(aesEncryptionService.decrypt(eq(ENCRYPTED_PRI_KEY))).thenReturn(DECRYPTED_PRI_KEY);
 
         // when
-        List<DecryptedApiKeySettingDTO> result = apiKeySettingRepositoryAdapter.findAllByUserId(USER_ID);
+        List<DecryptedApiKeySettingDTO> result = apiKeySettingCustomRepository.findAllByUserIdDecrypted(USER_ID);
 
         // then
         assertThat(result.size()).isEqualTo(1);

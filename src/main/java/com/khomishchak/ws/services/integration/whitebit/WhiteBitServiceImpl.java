@@ -1,8 +1,8 @@
 package com.khomishchak.ws.services.integration.whitebit;
 
-import com.khomishchak.ws.adapters.ApiKeySettingRepositoryAdapter;
 import com.khomishchak.ws.model.enums.ExchangerCode;
 import com.khomishchak.ws.model.exchanger.DecryptedApiKeySettingDTO;
+import com.khomishchak.ws.repositories.custom.decorator.DecoratedApiKeySettingRepository;
 import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitClientException;
 import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitServerException;
 import com.khomishchak.ws.services.integration.whitebit.mappers.WhiteBitErrorResponseMapper;
@@ -45,17 +45,17 @@ public class WhiteBitServiceImpl implements WhiteBitService {
     private static final String WHITE_BIT_SERVER_ERROR_MESSAGE = "Failed to get response from WhiteBit, server error";
     private static final ExchangerCode CODE = ExchangerCode.WHITE_BIT;
     private final WhiteBitErrorResponseMapper errorResponseMapper;
-    private final ApiKeySettingRepositoryAdapter apiKeySettingRepositoryAdapter;
+    private final DecoratedApiKeySettingRepository decoratedApiKeySettingRepository;
     private final WebClient webClient;
     private final int retryMaxAttempts;
     private final Duration retryMinBackoff;
 
     public WhiteBitServiceImpl(@Qualifier("WhiteBitApiWebClient") WebClient webClient,
                                WhiteBitErrorResponseMapper errorResponseMapper,
-                               ApiKeySettingRepositoryAdapter apiKeySettingRepositoryAdapter,
+                               DecoratedApiKeySettingRepository decoratedApiKeySettingRepository,
             @Value("${ws.integration.exchanger.api.retry.maxAttempts:2}") int retryMaxAttempts,
             @Value("${ws.integration.exchanger.api.retry.minBackoffSeconds:2}") int retryMinBackoffSeconds) {
-        this.apiKeySettingRepositoryAdapter = apiKeySettingRepositoryAdapter;
+        this.decoratedApiKeySettingRepository = decoratedApiKeySettingRepository;
         this.webClient = webClient;
         this.retryMaxAttempts = retryMaxAttempts;
         this.retryMinBackoff = Duration.ofSeconds(retryMinBackoffSeconds);
@@ -148,7 +148,7 @@ public class WhiteBitServiceImpl implements WhiteBitService {
 
     // TODO: should be able to return multiple keySettings for the same code but with different balance names
     private DecryptedApiKeySettingDTO getApiKeysPair(long userId) {
-        List<DecryptedApiKeySettingDTO> apiKeys = apiKeySettingRepositoryAdapter.findAllByUserId(userId);
+        List<DecryptedApiKeySettingDTO> apiKeys = decoratedApiKeySettingRepository.findAllByUserIdDecrypted(userId);
 
         return apiKeys.stream()
                 .filter(keys -> CODE.equals(keys.getCode()))
