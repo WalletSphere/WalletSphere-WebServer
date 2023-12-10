@@ -158,9 +158,12 @@ public class WhiteBitServiceImpl implements WhiteBitService {
     }
 
     private <T> Mono<T> getErrorResp(WhiteBitV4ErrorResp resp, int statusCode) {
-        List<String> errors = resp.getErrors() != null ? resp.getErrors().getMessages() : new ArrayList<>();
-        return Mono.error(new WhiteBitClientException(resp.getCode(),
-                resp.getErrorMessage(), errors, statusCode));
+        return Mono.error(new WhiteBitClientException(resp.getCode(), resp.getErrorMessage(), getErrors(resp), statusCode));
+    }
+
+    private List<String> getErrors (WhiteBitV4ErrorResp resp) {
+        WhiteBitV4ErrorResp.Errors respErrors = resp.getErrors();
+        return respErrors != null ? respErrors.getMessages() : new ArrayList<>();
     }
 
     private String calculateSignature(String payload, DecryptedApiKeySettingDTO keysPair) {
