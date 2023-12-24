@@ -58,12 +58,10 @@ public class ExchangerDepositWithdrawalTransactions {
     }
 
     public ExchangerDepositWithdrawalTransactions(Balance balance, ExchangerCode code) {
-        ExchangerDepositWithdrawalTransactions transactions = ExchangerDepositWithdrawalTransactions.builder()
-                .code(code)
-                .userId(balance.getUserId())
-                .balance(balance)
-                .build();
-        balance.setDepositWithdrawalTransactions(transactions);
+        this.code = code;
+        this.userId = balance.getUserId();
+        this.balance = balance;
+        balance.setDepositWithdrawalTransactions(this);
     }
 
     public void assigneeTransactionsToExchangerTransactionsEntity(List<DepositWithdrawalTransaction> transactions) {

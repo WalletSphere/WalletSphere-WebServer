@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -104,8 +105,7 @@ class WhiteBitExchangerConnectorServiceTest {
         when(whiteBitService.getDepositWithdrawalHistory(USER_ID)).thenReturn(buildDepositWithdrawalHistoryResponseMono());
         when(responseMapper.mapWithdrawalDepositHistoryToTransactions(any(WhiteBitDepositWithdrawalHistoryResp.class)))
                 .thenReturn(depositWithdrawalTransactions);
-        when(balanceRepository.findByCodeAndUser_Id(ExchangerCode.WHITE_BIT, USER_ID))
-                .thenReturn(Optional.of(balance));
+        when(balanceRepository.findByCodeAndUser_Id(ExchangerCode.WHITE_BIT, USER_ID)).thenReturn(Optional.of(balance));
         // when
         ExchangerDepositWithdrawalTransactions result = connectorService.getDepositWithdrawalHistory(USER_ID);
 
