@@ -56,4 +56,18 @@ public class ExchangerDepositWithdrawalTransactions {
     public Long getBalanceId() {
         return balance.getId();
     }
+
+    public ExchangerDepositWithdrawalTransactions(Balance balance, ExchangerCode code) {
+        ExchangerDepositWithdrawalTransactions transactions = ExchangerDepositWithdrawalTransactions.builder()
+                .code(code)
+                .userId(balance.getUserId())
+                .balance(balance)
+                .build();
+        balance.setDepositWithdrawalTransactions(transactions);
+    }
+
+    public void assigneeTransactionsToExchangerTransactionsEntity(List<DepositWithdrawalTransaction> transactions) {
+        transactions.forEach(transaction -> transaction.setExchangerDepositWithdrawalTransactions(this));
+        this.setTransactions(transactions);
+    }
 }

@@ -75,29 +75,13 @@ public class WhiteBitExchangerConnectorService implements ExchangerConnectorServ
     private ExchangerDepositWithdrawalTransactions getExchangerDepositWithdrawalTransactions(Balance balance,
                                                                     List<DepositWithdrawalTransaction> transactions) {
         ExchangerDepositWithdrawalTransactions exchangerTransactions = getExchangerDepositWithdrawalTransactions(balance);
-        assigneeTransactionsToExchangerTransactionsEntity(exchangerTransactions, transactions);
+        exchangerTransactions.assigneeTransactionsToExchangerTransactionsEntity(transactions);
         return exchangerTransactions;
     }
 
     private ExchangerDepositWithdrawalTransactions getExchangerDepositWithdrawalTransactions (Balance balance) {
         return depositWithdrawalTransactionsHistoryRepository.findByBalance_Id(balance.getId())
-                .orElseGet(() -> getNewExchangerDepositWithdrawalTransactions(balance));
-    }
-
-    private ExchangerDepositWithdrawalTransactions getNewExchangerDepositWithdrawalTransactions(Balance balance) {
-        ExchangerDepositWithdrawalTransactions transactions = ExchangerDepositWithdrawalTransactions.builder()
-                .code(CODE)
-                .userId(balance.getUserId())
-                .balance(balance)
-                .build();
-        balance.setDepositWithdrawalTransactions(transactions);
-        return transactions;
-    }
-
-    private void assigneeTransactionsToExchangerTransactionsEntity(ExchangerDepositWithdrawalTransactions exchangerTransactions,
-                                                                   List<DepositWithdrawalTransaction> transactions) {
-        transactions.forEach(transaction -> transaction.setExchangerDepositWithdrawalTransactions(exchangerTransactions));
-        exchangerTransactions.setTransactions(transactions);
+                .orElseGet(() -> new ExchangerDepositWithdrawalTransactions(balance, CODE));
     }
 
     private Balance getBalanceByUserIdOrThrowException(long userId) {
