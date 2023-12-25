@@ -17,8 +17,7 @@ import java.time.Duration;
 @Configuration
 public class WhiteBitWebConfig {
 
-    @Qualifier("WhiteBitApiHttpClient")
-    @Bean
+    @Bean("WhiteBitApiHttpClient")
     HttpClient whiteBitApiHttpClient(
             @Value("${ws.integration.whitebit.api.timeout.response:10}") int responseTimeoutSeconds,
             @Value("${ws.integration.whitebit.api.timeout.connection:5}") int connectionTimeoutSeconds,
@@ -33,8 +32,7 @@ public class WhiteBitWebConfig {
                         .addHandlerFirst(new WriteTimeoutHandler(writeTimeoutSeconds)));
     }
 
-    @Qualifier("WhiteBitApiWebClient")
-    @Bean
+    @Bean("WhiteBitApiWebClient")
     WebClient WhiteBitApiShortTimeoutWebClient(WebClient.Builder webClientBuilder,
             @Qualifier("WhiteBitApiHttpClient") HttpClient idScanApiHttpClient) {
         return webClientBuilder
@@ -42,8 +40,7 @@ public class WhiteBitWebConfig {
                 .build();
     }
 
-    @Qualifier("WhiteBitObjectMapper")
-    @Bean
+    @Bean("WhiteBitObjectMapper")
     ObjectMapper WhiteBitObjectMapper() {
         return new ObjectMapper();
     }

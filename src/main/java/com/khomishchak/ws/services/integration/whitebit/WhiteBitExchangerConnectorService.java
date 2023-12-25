@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class WhiteBitExchangerConnectorService implements ExchangerConnectorService {
@@ -48,9 +47,8 @@ public class WhiteBitExchangerConnectorService implements ExchangerConnectorServ
 
     @Override
     public ExchangerDepositWithdrawalTransactions getDepositWithdrawalHistory(long userId) {
-        return whiteBitService.getDepositWithdrawalHistory(userId)
-                .map(transactionResp -> handleSuccessfulDepositWithdrawalTransactionsResp(userId, transactionResp))
-                .block();
+        WhiteBitDepositWithdrawalHistoryResp transactionResp = whiteBitService.getDepositWithdrawalHistory(userId).block();
+        return handleSuccessfulDepositWithdrawalTransactionsResp(userId, transactionResp);
     }
 
     private Balance handleSuccessfulBalanceResp(long userId, WhiteBitBalanceResp response) {
