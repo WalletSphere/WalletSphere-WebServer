@@ -2,7 +2,7 @@ package com.khomishchak.ws.services.integration.whitebit;
 
 import com.khomishchak.ws.model.enums.ExchangerCode;
 import com.khomishchak.ws.model.exchanger.DecryptedApiKeySettingDTO;
-import com.khomishchak.ws.repositories.custom.decorator.DecoratedApiKeySettingRepository;
+import com.khomishchak.ws.services.exchangers.apikeys.ApiKeySettingService;
 import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitClientException;
 import com.khomishchak.ws.services.integration.whitebit.exceptions.WhiteBitServerException;
 import com.khomishchak.ws.services.integration.whitebit.mappers.WhiteBitErrorResponseMapper;
@@ -47,7 +47,7 @@ class WhiteBitServiceImplTest {
     private WebClient webClient;
 
     @Mock
-    private DecoratedApiKeySettingRepository decoratedApiKeySettingRepository;
+    private ApiKeySettingService apiKeySettingService;
     @Mock
     private WhiteBitErrorResponseMapper errorResponseMapper;
 
@@ -60,7 +60,7 @@ class WhiteBitServiceImplTest {
 
         webClient = WebClient.builder().build();
 
-        whiteBitService = new WhiteBitServiceImpl(webClient, errorResponseMapper, decoratedApiKeySettingRepository, RETRY_MAX_ATTEMPTS,
+        whiteBitService = new WhiteBitServiceImpl(webClient, errorResponseMapper, apiKeySettingService, RETRY_MAX_ATTEMPTS,
                 RETRY_MIN_BACKOFF_SECONDS);
         whiteBitService.setBaseUrl(mockWebServer.url("/").url().toString());
         whiteBitService.setGetMainBalanceDepositWithdrawalHistoryUrl("/transactions");
@@ -77,7 +77,7 @@ class WhiteBitServiceImplTest {
         expectedCurrencies.put("BSV", "1.3"); expectedCurrencies.put("BTC", "22.11"); expectedCurrencies.put("BTG", "0");
         expectedCurrencies.put("BTT", "0"); expectedCurrencies.put("XLM", "36.48");
 
-        when(decoratedApiKeySettingRepository.findAllByUserIdDecrypted(USER_ID)).thenReturn(decryptedKeysPair);
+        when(apiKeySettingService.getDecryptApiKeySettings(USER_ID)).thenReturn(decryptedKeysPair);
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -108,7 +108,7 @@ class WhiteBitServiceImplTest {
                 15, "5e112b38-9652-11ed-a1eb-0242ac120002",
                 "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886"));
 
-        when(decoratedApiKeySettingRepository.findAllByUserIdDecrypted(USER_ID)).thenReturn(decryptedApiKeySetting);
+        when(apiKeySettingService.getDecryptApiKeySettings(USER_ID)).thenReturn(decryptedApiKeySetting);
 
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)
@@ -141,7 +141,7 @@ class WhiteBitServiceImplTest {
         List<DecryptedApiKeySettingDTO> decryptedKeysPair = List.of(DecryptedApiKeySettingDTO.builder()
                 .publicKey(PUBLIC_KEY).privateKey(PRIVATE_KEY).code(ExchangerCode.WHITE_BIT).build());
 
-        when(decoratedApiKeySettingRepository.findAllByUserIdDecrypted(USER_ID)).thenReturn(decryptedKeysPair);
+        when(apiKeySettingService.getDecryptApiKeySettings(USER_ID)).thenReturn(decryptedKeysPair);
         when(errorResponseMapper.mapPlainTextErrorToObj(eq(errorMessage), eq(WhiteBitV4ErrorResp.class)))
                 .thenReturn(whiteBitV4ErrorResp);
 
@@ -179,7 +179,7 @@ class WhiteBitServiceImplTest {
         List<DecryptedApiKeySettingDTO> decryptedKeysPair = List.of(DecryptedApiKeySettingDTO.builder()
                 .publicKey(PUBLIC_KEY).privateKey(PRIVATE_KEY).code(ExchangerCode.WHITE_BIT).build());
 
-        when(decoratedApiKeySettingRepository.findAllByUserIdDecrypted(USER_ID)).thenReturn(decryptedKeysPair);
+        when(apiKeySettingService.getDecryptApiKeySettings(USER_ID)).thenReturn(decryptedKeysPair);
         when(errorResponseMapper.mapPlainTextErrorToObj(eq(errorMessage), eq(WhiteBitV4ErrorResp.class)))
                 .thenReturn(whiteBitV4ErrorResp);
 
