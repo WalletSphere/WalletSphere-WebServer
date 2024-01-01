@@ -1,28 +1,27 @@
-package com.khomishchak.ws.repositories.custom.impl;
+package com.khomishchak.ws.services.exchangers.apikeys;
 
 import com.khomishchak.ws.model.enums.ExchangerCode;
 import com.khomishchak.ws.model.exchanger.ApiKeysPair;
 import com.khomishchak.ws.model.exchanger.DecryptedApiKeySettingDTO;
 import com.khomishchak.ws.repositories.ApiKeySettingRepository;
-import com.khomishchak.ws.repositories.custom.ApiKeySettingCustomRepository;
 import com.khomishchak.ws.services.security.encryption.AesEncryptionService;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Repository
-public class ApiKeySettingCustomRepositoryImpl implements ApiKeySettingCustomRepository {
+@Service
+public class ApiKeySettingServiceImpl implements ApiKeySettingService {
 
     private final ApiKeySettingRepository apiKeySettingRepository;
     private final AesEncryptionService aesEncryptionService;
 
-    public ApiKeySettingCustomRepositoryImpl(ApiKeySettingRepository apiKeySettingRepository, AesEncryptionService aesEncryptionService) {
+    public ApiKeySettingServiceImpl(ApiKeySettingRepository apiKeySettingRepository, AesEncryptionService aesEncryptionService) {
         this.apiKeySettingRepository = apiKeySettingRepository;
         this.aesEncryptionService    = aesEncryptionService;
     }
 
     @Override
-    public List<DecryptedApiKeySettingDTO> findAllByUserIdDecrypted(long userId) {
+    public List<DecryptedApiKeySettingDTO> getDecryptApiKeySettings(long userId) {
         return apiKeySettingRepository.findAllByUserId(userId).stream()
                 .map(settings -> {
                     ApiKeysPair encryptedKeysPair = settings.getApiKeys();
