@@ -11,8 +11,6 @@ import com.khomishchak.ws.model.exchanger.transaction.ExchangerDepositWithdrawal
 import com.khomishchak.ws.model.requests.RegisterApiKeysReq;
 import com.khomishchak.ws.model.requests.RegisterExchangerInfoReq;
 import com.khomishchak.ws.model.response.FirstlyGeneratedBalanceResp;
-import com.khomishchak.ws.model.response.SyncBalancesResp;
-import com.khomishchak.ws.model.response.SyncDepositWithdrawalTransactionsResp;
 import com.khomishchak.ws.repositories.ApiKeySettingRepository;
 import com.khomishchak.ws.services.UserService;
 import com.khomishchak.ws.services.exchangers.balances.BalanceService;
