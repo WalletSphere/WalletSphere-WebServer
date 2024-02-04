@@ -4,5 +4,5 @@ import com.khomishchak.ws.model.exchanger.transaction.ExchangerDepositWithdrawal
 
 import java.util.List;
 
-public record SyncDepositWithdrawalTransactionsResp(List<ExchangerDepositWithdrawalTransactions> transactions) {
+public record SyncDepositWithdrawalTransactionsResp() {
 }

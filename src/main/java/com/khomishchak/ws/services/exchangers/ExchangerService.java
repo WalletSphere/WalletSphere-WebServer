@@ -22,8 +22,8 @@ public interface ExchangerService {
 
     List<ExchangerDepositWithdrawalTransactions> getWithdrawalDepositWalletHistory(long userId);
 
-    SyncBalancesResp synchronizeBalanceDataForUser(long userId);
-    SyncDepositWithdrawalTransactionsResp synchronizeDepositWithdrawalTransactionsData(long userId);
+    List<Balance> synchronizeBalanceDataForUser(long userId);
+    List<ExchangerDepositWithdrawalTransactions> synchronizeDepositWithdrawalTransactionsData(long userId);
 
     void deleteExchangerForUser(long balanceId);
 

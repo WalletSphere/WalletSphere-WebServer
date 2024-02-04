@@ -72,14 +72,13 @@ public class ExchangerServiceImpl implements ExchangerService {
     }
 
     @Override
-    public SyncBalancesResp synchronizeBalanceDataForUser(long userId) {
-        return new SyncBalancesResp(balanceService.synchronizeBalances(userId));
+    public List<Balance> synchronizeBalanceDataForUser(long userId) {
+        return balanceService.synchronizeBalances(userId);
     }
 
     @Override
-    public SyncDepositWithdrawalTransactionsResp synchronizeDepositWithdrawalTransactionsData(long userId) {
-        return new SyncDepositWithdrawalTransactionsResp(
-                accountBalanceTransferOperationsHistoryService.synchronizeDepositWithdrawalTransactionsHistory(userId));
+    public List<ExchangerDepositWithdrawalTransactions> synchronizeDepositWithdrawalTransactionsData(long userId) {
+        return accountBalanceTransferOperationsHistoryService.synchronizeDepositWithdrawalTransactionsHistory(userId);
     }
 
     @Override
